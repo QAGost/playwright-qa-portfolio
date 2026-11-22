@@ -5,19 +5,29 @@ name: Playwright Tests
 # registers its own run user (plans/api-users.md), and the site removes all
 # user data hourly, so nothing is left behind.
 #
-# CI runs the API tests only (--grep @api --no-deps): the demo site's UI sits
-# behind Cloudflare bot protection, which challenges datacenter IPs like
-# GitHub's runners. The full suite (UI included) runs green locally — swap the
-# grep out when you point this scaffold at your own application.
+# CI runs the API tests only (--project=api): the demo site's UI sits behind
+# Cloudflare bot protection, which challenges datacenter IPs like GitHub's
+# runners. The full suite (UI included) runs green locally.
 #
 # Not a required branch check: the suite depends on a third-party demo API,
 # and its downtime should not block merges (skill-lint and the template
 # smoke test are the deterministic gates).
+#
+# Triggers: every push to main and every pull request; manually from the
+# Actions tab ("Run workflow", any branch; only users with write access);
+# and daily, so the badge shows whether the third-party API still behaves
+# today, not just on the day of the last push. GitHub pauses scheduled runs
+# after 60 days without repository activity.
 
 on:
     push:
         branches: [main]
     pull_request:
+    workflow_dispatch:
+    schedule:
+        # 06:17 UTC daily. Off the hour: less queueing on GitHub's side, and
+        # clear of the site's hourly data wipe if that runs on the hour.
+        - cron: '17 6 * * *'
 
 jobs:
     test:
