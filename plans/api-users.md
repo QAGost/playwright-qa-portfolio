@@ -10,8 +10,8 @@
 - Status: Reviewed 2026-11-22; open questions A to D resolved. Implemented 2026-11-22:
   self-provisioned run user (reused across runs, verified), API-00 (`users-delete.spec.ts`,
   uses the run user, creates nothing), API-02 + API-03 (`users-me.spec.ts`), API-01
-  (`users-register.creates-accounts.spec.ts`, runs only with `RUN_ACCOUNT_CREATING_TESTS=1`).
-  Full suite 25/25 green without creating accounts. Next: P2.
+  (`users-register.creates-accounts.spec.ts`). The on-demand switch for account-creating tests
+  was removed after the hourly wipe was confirmed; they run with everything else. Next: P2.
 
 ## Why this layer, and why now
 
@@ -27,13 +27,13 @@
 
 ## Users of this layer and what they need
 
-| User | Need | Must work |
-| --- | --- | --- |
-| A new customer (through the UI or any client) | Create an account and be recognised | Register → log in → `/users/me` returns their data |
-| A returning customer | Sessions that end when they sign out | Logout invalidates the token |
-| Anyone with a stolen or missing token | Gets nothing | Protected endpoints answer 401 |
-| The test suite itself | A private, disposable user per run | Self-provisioning setup; no stored credentials |
-| A reviewer cloning the repo | Run it with zero setup | `npm install && npm test`, no account needed |
+| User                                          | Need                                 | Must work                                          |
+| --------------------------------------------- | ------------------------------------ | -------------------------------------------------- |
+| A new customer (through the UI or any client) | Create an account and be recognised  | Register → log in → `/users/me` returns their data |
+| A returning customer                          | Sessions that end when they sign out | Logout invalidates the token                       |
+| Anyone with a stolen or missing token         | Gets nothing                         | Protected endpoints answer 401                     |
+| The test suite itself                         | A private, disposable user per run   | Self-provisioning setup; no stored credentials     |
+| A reviewer cloning the repo                   | Run it with zero setup               | `npm install && npm test`, no account needed       |
 
 ## Self-provisioning design
 
@@ -78,36 +78,37 @@ setup-ui   ── UI login with the run user (AppPage.loginAndVerify) ───�
 Every row of the coverage matrix (`api-testing` skill) is listed; rows that cannot apply say why,
 rows to cut need your decision (Open question D).
 
-| ID | P | Endpoint | Scenario | Expected (contract) | Notes |
-| --- | --- | --- | --- | --- | --- |
-| API-00 | P1 | DELETE /users/{userId} | Can a customer delete their own account? | Contract lists 204 and 403 | **First implementation step**, one throwaway user. If 204: every test that registers a user deletes it in teardown, and no users are left behind. If 403: recorded as `// OBSERVED`, and the volume limits below apply |
-| API-01 | P1 | POST /users/register | Happy path | 201, user schema; `first_name`, `last_name`, `email` equal what was sent; no password in the body | Asserted on the registration the setup performs when it creates a run user, plus a standalone test in the nightly set |
-| API-02 | P1 | POST /users/login | Newly registered user logs in | 200, `UserResponseSchema` (token) | Existing scaffold spec covers the shared user; this uses a fresh one |
-| API-03 | P1 | GET /users/me | Token of the new user returns that user | 200, user schema; email and names match the registration | One test, three calls, one `test.step()` per call |
-| API-04 | P2 | POST /users/register | Email already registered | 409, conflict schema | Register the same factory payload twice |
-| API-05 | P2 | GET /users/me | No token | 401, `UnauthorizedResponseSchema` | |
-| API-06 | P2 | GET /users/me | Malformed or invalid token | 401 | `Bearer not-a-token` |
-| API-07 | P2 | GET /users/logout | Logout with a valid token | 200, new `LogoutResponseSchema` (`{ message }`) | |
-| API-08 | P2 | GET /users/logout → GET /users/me | Token is dead after logout | `/me` answers 401 | Security: the "shared computer" case at API level |
-| API-09 | P2 | POST /users/login | Lockout after repeated failures | 3 failed logins, then 423 | **Not in the contract** (login documents only 200); expected code and body captured live, marked `// OBSERVED`. Uses its own `registeredUser`, never the run user |
-| API-10 | P3 | POST /users/register | Empty body `{}` | 400 per contract | Likely 422 live: Open question C |
-| API-11 | P3 | POST /users/register | Each required field omitted (`first_name`, `last_name`, `email`, `password`) | 400 per contract | One test per field (omission loop) |
-| API-12 | P3 | POST /users/register | Malformed emails | 400 per contract | `INVALID_EMAILS` from `test-data/static/app/invalidCredentials.ts` |
-| API-13 | P3 | POST /users/register | Password shorter than 8 | 400 per contract | 7 characters, otherwise policy-compliant |
-| API-14 | P4 | POST /users/register | Wrong types per field (strings, `address` object, `dob` date) | 400 per contract | `for...of` over the universal `INVALID_*` arrays; `undefined` dropped for optional fields |
-| API-15 | P4 | POST /users/register | Max lengths exceeded (first 41, last 21, phone 25, email 257) | 400 per contract | Inline range values |
-| API-16 | P4 | POST /users/register | Unsupported method (`GET /users/register`) | 405, `MethodNotAllowedResponseSchema` | 405 is not documented for this path: captured live, `// OBSERVED` |
-| API-17 | P4 | POST /users/login | Wrong password / unknown email (existing scaffold loop) | 401 | Existing tests; contract documents only 200, so they get `// OBSERVED` lines |
+| ID     | P   | Endpoint                          | Scenario                                                                     | Expected (contract)                                                                               | Notes                                                                                                                                                                                                                  |
+| ------ | --- | --------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API-00 | P1  | DELETE /users/{userId}            | Can a customer delete their own account?                                     | Contract lists 204 and 403                                                                        | **First implementation step**, one throwaway user. If 204: every test that registers a user deletes it in teardown, and no users are left behind. If 403: recorded as `// OBSERVED`, and the volume limits below apply |
+| API-01 | P1  | POST /users/register              | Happy path                                                                   | 201, user schema; `first_name`, `last_name`, `email` equal what was sent; no password in the body | Asserted on the registration the setup performs when it creates a run user, plus a standalone test in the nightly set                                                                                                  |
+| API-02 | P1  | POST /users/login                 | Newly registered user logs in                                                | 200, `UserResponseSchema` (token)                                                                 | Existing scaffold spec covers the shared user; this uses a fresh one                                                                                                                                                   |
+| API-03 | P1  | GET /users/me                     | Token of the new user returns that user                                      | 200, user schema; email and names match the registration                                          | One test, three calls, one `test.step()` per call                                                                                                                                                                      |
+| API-04 | P2  | POST /users/register              | Email already registered                                                     | 409, conflict schema                                                                              | Register the same factory payload twice                                                                                                                                                                                |
+| API-05 | P2  | GET /users/me                     | No token                                                                     | 401, `UnauthorizedResponseSchema`                                                                 |                                                                                                                                                                                                                        |
+| API-06 | P2  | GET /users/me                     | Malformed or invalid token                                                   | 401                                                                                               | `Bearer not-a-token`                                                                                                                                                                                                   |
+| API-07 | P2  | GET /users/logout                 | Logout with a valid token                                                    | 200, new `LogoutResponseSchema` (`{ message }`)                                                   |                                                                                                                                                                                                                        |
+| API-08 | P2  | GET /users/logout → GET /users/me | Token is dead after logout                                                   | `/me` answers 401                                                                                 | Security: the "shared computer" case at API level                                                                                                                                                                      |
+| API-09 | P2  | POST /users/login                 | Lockout after repeated failures                                              | 3 failed logins, then 423                                                                         | **Not in the contract** (login documents only 200); expected code and body captured live, marked `// OBSERVED`. Uses its own `registeredUser`, never the run user                                                      |
+| API-10 | P3  | POST /users/register              | Empty body `{}`                                                              | 400 per contract                                                                                  | Likely 422 live: Open question C                                                                                                                                                                                       |
+| API-11 | P3  | POST /users/register              | Each required field omitted (`first_name`, `last_name`, `email`, `password`) | 400 per contract                                                                                  | One test per field (omission loop)                                                                                                                                                                                     |
+| API-12 | P3  | POST /users/register              | Malformed emails                                                             | 400 per contract                                                                                  | `INVALID_EMAILS` from `test-data/static/app/invalidCredentials.ts`                                                                                                                                                     |
+| API-13 | P3  | POST /users/register              | Password shorter than 8                                                      | 400 per contract                                                                                  | 7 characters, otherwise policy-compliant                                                                                                                                                                               |
+| API-14 | P4  | POST /users/register              | Wrong types per field (strings, `address` object, `dob` date)                | 400 per contract                                                                                  | `for...of` over the universal `INVALID_*` arrays; `undefined` dropped for optional fields                                                                                                                              |
+| API-15 | P4  | POST /users/register              | Max lengths exceeded (first 41, last 21, phone 25, email 257)                | 400 per contract                                                                                  | Inline range values                                                                                                                                                                                                    |
+| API-16 | P4  | POST /users/register              | Unsupported method (`GET /users/register`)                                   | 405, `MethodNotAllowedResponseSchema`                                                             | 405 is not documented for this path: captured live, `// OBSERVED`                                                                                                                                                      |
+| API-17 | P4  | POST /users/login                 | Wrong password / unknown email (existing scaffold loop)                      | 401                                                                                               | Existing tests; contract documents only 200, so they get `// OBSERVED` lines                                                                                                                                           |
 
-**Tests that create users** (API-01 standalone, API-04 duplicate email, API-09 lockout) run in a
-nightly or on-demand CI job, not on every push: about 3 accounts a day at most, none if API-00
-shows a user can delete itself. A typical push creates 0 to 1 users (the run user, about weekly).
-Validation tests create nothing (the API rejects them).
+**Tests that create users** (API-01 standalone, API-04 duplicate email, API-09 lockout) live in
+`*.creates-accounts.spec.ts` files so a reader sees which tests create data. They were first
+planned as nightly-only; since the site removes all user data hourly (see Data retention), they
+run with every other test. Validation tests create nothing (the API rejects them).
 
 **Not applicable:** path-parameter and query-parameter loops (none of these endpoints has
 either); 404 (no resource id); 204 (no DELETE in scope).
 
 **Documented but not producible from a client** (need your cut, Open question D):
+
 - `POST /users/register` → 401 and 403: the endpoint needs no authentication, so no client
   input should produce them.
 - `POST /users/register` and `GET /users/logout` → 400 "Bad Request, no body": with JSON
@@ -136,12 +137,13 @@ either); 404 (no resource id); 204 (no DELETE in scope).
 ## Data retention on the public site (verified 2026-11-22)
 
 Source: the site's privacy policy, https://practicesoftwaretesting.com/privacy, "Data Removal"
-(found by the repo owner, read live with playwright-cli): *"Toolshop automatically removes all
+(found by the repo owner, read live with playwright-cli): _"Toolshop automatically removes all
 user data every hour [...] ensuring that no user data is stored beyond the duration of an
-hour."* The page does not say whether this is a fixed job (for example on the hour) or each
+hour."_ The page does not say whether this is a fixed job (for example on the hour) or each
 account expiring an hour after creation.
 
 Consequences:
+
 - **Leftover accounts are a non-issue.** Every account the suite registers is gone within an
   hour, the locked API-00 probe user included. The volume limits below were written before this
   was known; they now protect speed, not the site.
@@ -158,26 +160,26 @@ Consequences:
 
 ## Live results, API-00 run (2026-11-22, one throwaway user)
 
-| Question | Answer | Consequence |
-| --- | --- | --- |
-| Can a customer delete itself? (API-00) | **No: `DELETE /users/{id}` with its own token → 403 `{"message":"Forbidden"}`** | No cleanup possible; the volume limits apply. API-00 becomes a test asserting the 403 (`// OBSERVED` not needed: 403 is documented) |
-| Register | 201; body keys `first_name, last_name, email, dob, phone, id, created_at, address`, all within `CurrentUserSchema` | Reuse confirmed |
-| Lockout | Failed logins 1-3 → 401 `{"error":"Unauthorized"}`; **attempt 4 → 423** `{"error":"Account locked, too many failed attempts. Please contact the administrator."}`; the correct password then also gets 423 | API-09 expects exactly this, `// OBSERVED` |
-| Token issued before the lock | **Still valid: `GET /users/me` → 200 after the account locked** | **Security finding**: locking an account does not end its sessions. Candidate bug report; new scenario API-18 (known defect, `test.fail()` + `// BUG:` if confirmed by the owner) |
-| Validation errors | **422** with a field → messages map (empty body: all four required fields named) | Question C settled: the contract's 400 is stale for validation; tests assert 422 with `// OBSERVED: contract documents 400` and the docs gap is a candidate upstream issue |
-| `GET /users/register` (API-16) | **401** `{"message":"Unauthorized"}`, not 405: the path is routed as `GET /users/{userId}` | API-16 asserts 401 with `// OBSERVED`; a 405 for this path cannot be produced by changing the method |
+| Question                               | Answer                                                                                                                                                                                                     | Consequence                                                                                                                                                                       |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Can a customer delete itself? (API-00) | **No: `DELETE /users/{id}` with its own token → 403 `{"message":"Forbidden"}`**                                                                                                                            | No cleanup possible; the volume limits apply. API-00 becomes a test asserting the 403 (`// OBSERVED` not needed: 403 is documented)                                               |
+| Register                               | 201; body keys `first_name, last_name, email, dob, phone, id, created_at, address`, all within `CurrentUserSchema`                                                                                         | Reuse confirmed                                                                                                                                                                   |
+| Lockout                                | Failed logins 1-3 → 401 `{"error":"Unauthorized"}`; **attempt 4 → 423** `{"error":"Account locked, too many failed attempts. Please contact the administrator."}`; the correct password then also gets 423 | API-09 expects exactly this, `// OBSERVED`                                                                                                                                        |
+| Token issued before the lock           | **Still valid: `GET /users/me` → 200 after the account locked**                                                                                                                                            | **Security finding**: locking an account does not end its sessions. Candidate bug report; new scenario API-18 (known defect, `test.fail()` + `// BUG:` if confirmed by the owner) |
+| Validation errors                      | **422** with a field → messages map (empty body: all four required fields named)                                                                                                                           | Question C settled: the contract's 400 is stale for validation; tests assert 422 with `// OBSERVED: contract documents 400` and the docs gap is a candidate upstream issue        |
+| `GET /users/register` (API-16)         | **401** `{"message":"Unauthorized"}`, not 405: the path is routed as `GET /users/{userId}`                                                                                                                 | API-16 asserts 401 with `// OBSERVED`; a 405 for this path cannot be produced by changing the method                                                                              |
 
 The throwaway user `pw-autotest-cprpvfu3@example.com` remains on the site, locked (deletion is
 forbidden).
 
 ## Contract findings (from reading the document)
 
-| Finding | Contract | Live evidence | Handling |
-| --- | --- | --- | --- |
-| Login documents only 200 | `POST /users/login`: 200 | 401 and 423 seen 2026-11-22 | Tests mark the codes `// OBSERVED`; candidate docs issue upstream |
-| Validation errors | 400, no body | The repo's 422 schema was captured live (field → messages) | Open question C |
-| Address optional in the API, required in the UI | address not in `required` | UI register form required house number and state (2026-11-22) | Recorded; a candidate for a register UI plan |
-| State accepted as free text | no enum or pattern | UI accepted "Undefined" | Recorded only |
+| Finding                                         | Contract                  | Live evidence                                                 | Handling                                                          |
+| ----------------------------------------------- | ------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Login documents only 200                        | `POST /users/login`: 200  | 401 and 423 seen 2026-11-22                                   | Tests mark the codes `// OBSERVED`; candidate docs issue upstream |
+| Validation errors                               | 400, no body              | The repo's 422 schema was captured live (field → messages)    | Open question C                                                   |
+| Address optional in the API, required in the UI | address not in `required` | UI register form required house number and state (2026-11-22) | Recorded; a candidate for a register UI plan                      |
+| State accepted as free text                     | no enum or pattern        | UI accepted "Undefined"                                       | Recorded only                                                     |
 
 ## Out of scope
 
@@ -221,12 +223,12 @@ record.
 - Scope: `plans/api-users.md` only; code follows after review.
 - Confidence: 7 (medium)
 - Rationale:
-  - +: every endpoint, field rule and status code comes from the OpenAPI document.
-  - +: reuses the schema, fixtures and token loading that already exist; existing UI tests need
-    no changes.
-  - +: removes the stored-credential and lockout risk for the whole suite.
-  - -: the 400/422 question and the undocumented 405/423 bodies need live capture.
-  - -: the password policy beyond "min 8" is undocumented; the factory guarantees every
-    character class to stay safe, and the first registration confirms it.
+    - +: every endpoint, field rule and status code comes from the OpenAPI document.
+    - +: reuses the schema, fixtures and token loading that already exist; existing UI tests need
+      no changes.
+    - +: removes the stored-credential and lockout risk for the whole suite.
+    - -: the 400/422 question and the undocumented 405/423 bodies need live capture.
+    - -: the password policy beyond "min 8" is undocumented; the factory guarantees every
+      character class to stay safe, and the first registration confirms it.
 - Unknowns: whether a customer can delete itself (API-00), the 400/422 answer (C), the 405 and
   423 bodies. All are settled by live checks during implementation.

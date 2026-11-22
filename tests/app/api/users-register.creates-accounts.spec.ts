@@ -8,10 +8,11 @@ import { generateRegistration } from '../../../test-data/factories/app/user.fact
 
 /*
  * Users API, P1 (plans/api-users.md): API-01.
- * CREATES AN ACCOUNT on the target site that cannot be deleted (a customer
- * cannot delete itself, API-00). Accounts are labelled "PW Autotest" with
- * pw-autotest-*@example.com emails. Belongs to the nightly / on-demand set,
- * not to every push.
+ * CREATES AN ACCOUNT on the target site (the *.creates-accounts.spec.ts name
+ * says so). A customer cannot delete itself (API-00), but the public site
+ * removes all user data every hour (privacy policy), so the test runs with
+ * every other test. Accounts are labelled "PW Autotest" with
+ * pw-autotest-*@example.com emails.
  */
 test.describe('POST /users/register', () => {
     test(
