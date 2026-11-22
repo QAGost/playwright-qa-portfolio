@@ -1,11 +1,11 @@
 # [Bug][Login] Double-clicking the Login button sends two login requests
 
-| | |
-| --- | --- |
-| Status | Drafted 2026-11-22; not yet filed upstream |
-| Upstream issue | _to be added once filed at github.com/testsmith-io/practice-software-testing_ |
-| Found by | Test plan [`plans/login.md`](../../plans/login.md), scenario LOGIN-25 |
-| Severity (my assessment) | Minor; higher if each request counts toward the account lockout |
+|                          |                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| Status                   | Drafted 2026-11-22; not yet filed upstream                                    |
+| Upstream issue           | _to be added once filed at github.com/testsmith-io/practice-software-testing_ |
+| Found by                 | Test plan [`plans/login.md`](../../plans/login.md), scenario LOGIN-25         |
+| Severity (my assessment) | Minor; higher if each request counts toward the account lockout               |
 
 ## Context
 
@@ -32,7 +32,8 @@ await page.getByLabel('Email address *').fill('nobody@example.com');
 await page.getByLabel('Password *').fill('WrongPass123!');
 const logins: string[] = [];
 page.on('request', (r) => {
-    if (r.method() === 'POST' && r.url().endsWith('/users/login')) logins.push(r.url());
+    if (r.method() === 'POST' && r.url().endsWith('/users/login'))
+        logins.push(r.url());
 });
 await page.getByRole('button', { name: 'Login' }).dblclick();
 await expect(page.getByText('Invalid email or password')).toBeVisible();

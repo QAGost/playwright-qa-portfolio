@@ -36,20 +36,22 @@ If `$ARGUMENTS` is empty, stop and ask which page to explore.
    several pages or none, stop and ask.
 2. **Check existing coverage.** `ls pages/ tests/ enums/` and grep for the page name, so the plan
    says what already exists (page object, enum routes, messages, factories) and what is missing.
-2b. **Start from users, not elements.** Before exploring, list who uses this page, what each is
-   trying to get done, and which workflows *just have to work*. Priorities come from the harm
+3. **Start from users, not elements.** Before exploring, list who uses this page, what each is
+   trying to get done, and which workflows _just have to work_. Priorities come from the harm
    to those users when a workflow breaks, never from what is easiest to automate. Include the
    things real people do: reload, open a second tab, press Back, double-click, use only the
    keyboard, paste values (spaces, capitals), recover after a mistake, leave and come back,
    arrive signed out from a deep link.
-3. **Log in if the page needs it** (protected route, redirect to login, account-only
+4. **Log in if the page needs it** (protected route, redirect to login, account-only
    controls). Reuse the suite's storage state, never log in by typing credentials into the
    transcript:
-    - `npx playwright test --project setup-ui` (creates `.auth/app/appStorageState.json`)
+    - `npx playwright test --project setup-ui` (creates `.auth/app/appStorageState.json` for
+      the run user)
     - `playwright-cli state-load .auth/app/appStorageState.json`
 
-   If the page behaves differently logged in versus logged out, explore both and say so.
-4. **Explore.** `playwright-cli open <APP_URL>`, `resize 1920 1080` (the suite's viewport),
+    If the page behaves differently logged in versus logged out, explore both and say so.
+
+5. **Explore.** `playwright-cli open <APP_URL>`, `resize 1920 1080` (the suite's viewport),
    `goto` the route, then:
     - `snapshot` to get the accessibility tree; note roles, accessible names and labels.
     - `eval "el => el.getAttribute('data-test')" <ref>` and similar `eval` calls to inspect the
@@ -57,12 +59,12 @@ If `$ARGUMENTS` is empty, stop and ask which page to explore.
     - Exercise the page: fill forms with valid and invalid input, submit empty, open
       dropdowns, sort, filter, paginate, toggle. Record every success, error and validation
       message **verbatim**, and where it appears.
-    - Walk every workflow from step 2b on the live app and record what really happens; a
+    - Walk every workflow from step 3 on the live app and record what really happens; a
       workflow that misbehaves is a finding (likely defect or gap), not something to plan around.
-      If a workflow needs a real login, load `env/.env.dev` into the shell (`set -a; .
-      ./env/.env.dev; set +a`) and send all CLI output that would echo the values to
-      `/dev/null`; never print them. Never make failed login attempts on the shared
-      `APP_EMAIL` account (lockout risk); use random emails from the factory for failures.
+      If a workflow needs a real login, use the run user from `.auth/app/runUser.json`, loaded
+      into the shell without printing it, and send all CLI output that would echo the values
+      to `/dev/null`. Never make failed login attempts on the run user (3 failures lock an
+      account); use random emails from the factory for failures.
     - `console` and `requests` to note errors and the API calls the page makes (endpoint and
       status), which tell the plan what can be set up or cleaned up over the API.
     - `screenshot --filename=.playwright-cli/$ARGUMENTS-<state>.png` for each distinct visual
@@ -73,20 +75,20 @@ If `$ARGUMENTS` is empty, stop and ask which page to explore.
       OS-independent) for "is it all there and labelled right", `toHaveScreenshot` (pixels;
       per-OS baselines) only where appearance itself matters (styling, layout). Most pages get
       one structural check on their main form or content block.
-5. **Close** the session: `playwright-cli close`.
-6. **Write `plans/$ARGUMENTS.md`** with the template below. Create `plans/` if missing.
-7. **Stop.** Do not continue to `/codetest`. Report the plan path, the scenario count per
+6. **Close** the session: `playwright-cli close`.
+7. **Write `plans/$ARGUMENTS.md`** with the template below. Create `plans/` if missing.
+8. **Stop.** Do not continue to `/codetest`. Report the plan path, the scenario count per
    priority, the confidence score and the open questions, and ask me to review the plan.
 
 ## Priority scale
 
-| Priority | Meaning | Default tag |
-| --- | --- | --- |
-| P1 | Critical: the workflows real users need that just have to work; broken means users can't do what they came for. | `@smoke` |
-| P2 | High: the most common user mistakes and recoveries, and security expectations (sign-out, protected pages). | `@sanity` |
-| P3 | Medium: secondary features, per-field validation, negative paths. | `@regression` |
-| P4 | Low: edge cases, boundaries, uncommon states (empty, long, special characters). | `@regression` |
-| P5 | Cosmetic: layout and visual regression, copy, minor UI states. | `@regression` |
+| Priority | Meaning                                                                                                         | Default tag   |
+| -------- | --------------------------------------------------------------------------------------------------------------- | ------------- |
+| P1       | Critical: the workflows real users need that just have to work; broken means users can't do what they came for. | `@smoke`      |
+| P2       | High: the most common user mistakes and recoveries, and security expectations (sign-out, protected pages).      | `@sanity`     |
+| P3       | Medium: secondary features, per-field validation, negative paths.                                               | `@regression` |
+| P4       | Low: edge cases, boundaries, uncommon states (empty, long, special characters).                                 | `@regression` |
+| P5       | Cosmetic: layout and visual regression, copy, minor UI states.                                                  | `@regression` |
 
 A scenario that mutates shared state (locale, roles, settings) is tagged `@destructive` instead,
 whatever its priority. Exactly one tag per scenario (`test-standards` skill).
@@ -102,38 +104,46 @@ whatever its priority. Exactly one tag per scenario (`test-standards` skill).
 - Status: Draft, awaiting review
 
 ## Users and what they need
+
 | User | Goal | Must work |
-| --- | --- | --- |
+| ---- | ---- | --------- |
 
 ## Critical workflows (explored live)
+
 | Workflow | Observed | Verdict (works / likely defect / gap / out of scope) |
-| --- | --- | --- |
+| -------- | -------- | ---------------------------------------------------- |
 
 ## Page summary
+
 <What the page does, in 2-4 sentences.>
 
 ## Element inventory
+
 | Element | Proposed locator (verified live) | Notes |
-| --- | --- | --- |
+| ------- | -------------------------------- | ----- |
 
 ## Messages observed
+
 | Trigger | Exact text | Where it appears |
-| --- | --- | --- |
+| ------- | ---------- | ---------------- |
 
 ## API calls observed
+
 | Action | Method + endpoint | Status |
-| --- | --- | --- |
+| ------ | ----------------- | ------ |
 
 ## Scenarios
-| ID | Priority | Tag | Title | Visual check |
-| --- | --- | --- | --- | --- |
+
+| ID  | Priority | Tag | Title | Visual check |
+| --- | -------- | --- | ----- | ------------ |
 
 ### <ID>: <title> (P<n>, <tag>)
+
 - Preconditions: <auth, data, state>
 - Steps (Given / When / Then):
-  1. GIVEN ...
-  2. WHEN ...
-  3. THEN ...
+    1. GIVEN ...
+    2. WHEN ...
+    3. THEN ...
 - Expected: <assertions, with the exact messages from the table above>
 - Data: <factory (test-data/factories/app/) | static set (test-data/static/...) | env var>
 - Cleanup: <what is reverted and how, or "none: read-only">
@@ -141,6 +151,7 @@ whatever its priority. Exactly one tag per scenario (`test-standards` skill).
 - Evidence screenshots: <steps worth attaching to the report>
 
 ## Code this plan will need
+
 - Page object / component: <exists: pages/... | new: pages/app/<name>.page.ts>
 - Fixture registration: <needed | exists>
 - Enums: <routes, messages to add under enums/app/>
@@ -148,12 +159,15 @@ whatever its priority. Exactly one tag per scenario (`test-standards` skill).
 - Config constants: <e.g. screenshot diff threshold in config/>
 
 ## Out of scope
+
 <Anything seen but deliberately not planned, and why.>
 
 ## Open questions
+
 <Anything that could not be confirmed live. "None" if none.>
 
 ## Proposal
+
 - Scope: plans/<name>.md only; code in the section above is for /codetest
 - Confidence: <1-10> (<low|medium|high>)
 - Rationale: <one line per +/- factor>
