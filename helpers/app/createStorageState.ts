@@ -8,6 +8,133 @@ import {
     UserResponse,
     UserResponseSchema,
 } from '../../fixtures/api/schemas/app/userSchema';
+import {
+    CurrentUser,
+    CurrentUserSchema,
+} from '../../fixtures/api/schemas/app/currentUserSchema';
+import {
+    RunUser,
+    RunUserSchema,
+} from '../../fixtures/api/schemas/app/registerSchema';
+import { generateRegistration } from '../../test-data/factories/app/user.factory';
+
+/**
+ * Reads the run user saved by an earlier `ensureRunUser()` call.
+ *
+ * @returns {RunUser | null} The saved run user, or null when no file exists.
+ */
+function readRunUser(): RunUser | null {
+    if (!fs.existsSync(StorageStatePaths.RUN_USER)) return null;
+
+    const raw: unknown = JSON.parse(
+        fs.readFileSync(StorageStatePaths.RUN_USER, 'utf-8')
+    );
+    return RunUserSchema.parse(raw);
+}
+
+/**
+ * Publishes the run user's credentials to this process as
+ * `process.env.APP_EMAIL` and `process.env.APP_PASSWORD`, so every test and
+ * helper that reads them uses the run user.
+ *
+ * @param {RunUser} runUser - The user to publish.
+ * @returns {void}
+ */
+function publishRunUser(runUser: RunUser): void {
+    process.env['APP_EMAIL'] = runUser.email;
+    process.env['APP_PASSWORD'] = runUser.password;
+}
+
+/**
+ * Makes sure the suite has a private, working test user for this run.
+ *
+ * Reuses the user saved in `StorageStatePaths.RUN_USER` when it can still log
+ * in (no new account on the public site). Otherwise registers a new,
+ * clearly labelled test user from `generateRegistration()`, validates the
+ * 201 response, and saves the credentials for the next runs. A customer
+ * cannot delete its own account (403, see plans/api-users.md), so reuse is
+ * what keeps the number of leftover accounts low.
+ *
+ * @param {ApiRequestFn} apiRequest - The API request function from fixtures.
+ * @returns {Promise<RunUser>} The run user, also published to `process.env`.
+ */
+export async function ensureRunUser(
+    apiRequest: ApiRequestFn
+): Promise<RunUser> {
+    const savedUser = readRunUser();
+    if (savedUser) {
+        const { status } = await apiRequest<UserResponse>({
+            method: 'POST',
+            url: ApiEndpoints.LOGIN,
+            baseUrl: process.env.API_URL,
+            body: { email: savedUser.email, password: savedUser.password },
+        });
+        if (status === 200) {
+            publishRunUser(savedUser);
+            return savedUser;
+        }
+    }
+
+    const registration = generateRegistration();
+    const { status, body } = await apiRequest<CurrentUser>({
+        method: 'POST',
+        url: ApiEndpoints.REGISTER,
+        baseUrl: process.env.API_URL,
+        body: registration,
+    });
+
+    expect(status).toBe(201);
+    const createdUser = CurrentUserSchema.parse(body);
+    expect(createdUser.email).toBe(registration.email);
+
+    const runUser = RunUserSchema.parse({
+        email: registration.email,
+        password: registration.password,
+        first_name: registration.first_name,
+        last_name: registration.last_name,
+    });
+    fs.mkdirSync(path.dirname(StorageStatePaths.RUN_USER), {
+        recursive: true,
+    });
+    fs.writeFileSync(
+        StorageStatePaths.RUN_USER,
+        JSON.stringify(runUser, null, 2)
+    );
+
+    publishRunUser(runUser);
+    return runUser;
+}
+
+/**
+ * Returns the run user saved by the `setup-api` project.
+ *
+ * @returns {RunUser} The run user.
+ * @throws {Error} When no run user was saved (the `setup-api` project did not run).
+ */
+export function getRunUser(): RunUser {
+    const runUser = readRunUser();
+    if (!runUser) {
+        throw new Error(
+            `No run user at ${StorageStatePaths.RUN_USER}: run the setup-api project first`
+        );
+    }
+    return runUser;
+}
+
+/**
+ * Loads the run user saved by `ensureRunUser()` into `process.env.APP_EMAIL`
+ * and `process.env.APP_PASSWORD` for the current worker process.
+ *
+ * Called automatically once per worker by the `apiRequest` fixture file. A
+ * missing file is not an error: the `setup-api` project itself runs before it
+ * exists.
+ *
+ * @returns {void}
+ */
+export function loadRunUser(): void {
+    const runUser = readRunUser();
+    if (runUser) publishRunUser(runUser);
+}
 
 /**
  * Creates and saves the browser storage state after successful login.

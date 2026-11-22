@@ -1,5 +1,8 @@
 import { test as base } from '@playwright/test';
-import { loadUserAccessToken } from '../../helpers/app/createStorageState';
+import {
+    loadRunUser,
+    loadUserAccessToken,
+} from '../../helpers/app/createStorageState';
 import { apiRequest as apiRequestOriginal } from './plain-function';
 import {
     ApiRequestFn,
@@ -20,6 +23,7 @@ type ApiWorkerFixtures = {
 export const test = base.extend<ApiRequestMethods, ApiWorkerFixtures>({
     accessTokenLoaded: [
         async ({}, use): Promise<void> => {
+            loadRunUser();
             loadUserAccessToken();
             await use();
         },

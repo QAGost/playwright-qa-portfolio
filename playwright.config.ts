@@ -15,6 +15,9 @@ const environmentPath = `./env/.env.${environment}`;
 // quiet: dotenv v17+ prints promotional "injected env" banners by default
 dotenv.config({ path: environmentPath, quiet: true });
 
+/** Specs that register accounts on the target site; see the api-account-creating project. */
+const ACCOUNT_CREATING_SPECS = /\.creates-accounts\.spec\.ts$/;
+
 /**
  * Playwright Test Configuration
  * @see https://playwright.dev/docs/test-configuration
@@ -80,7 +83,8 @@ export default defineConfig({
             testMatch: /[\\/]auth-api\.setup\.ts$/,
         },
 
-        /* UI auth setup - signs in through the browser and saves the storage state */
+        /* UI auth setup - signs in through the browser and saves the storage state.
+           Depends on setup-api, which provides the run user it signs in as. */
         {
             name: 'setup-ui',
             use: {
@@ -88,16 +92,32 @@ export default defineConfig({
                 viewport: { width: 1920, height: 1080 },
             },
             testMatch: /[\\/]auth\.setup\.ts$/,
+            dependencies: ['setup-api'],
         },
 
         /* API test project - request-context only, no browser storage state.
            Depends on setup-api alone: the token file exists before any worker
-           starts, and an API run never launches a browser (CI, fresh environments). */
+           starts, and an API run never launches a browser (CI, fresh environments).
+           Account-creating specs are excluded (see below). */
         {
             name: 'api',
             testMatch: /.*\/api\/.*\.spec\.ts/,
+            testIgnore: ACCOUNT_CREATING_SPECS,
             dependencies: ['setup-api'],
         },
+
+        /* Account-creating API tests register accounts the API does not let a
+           customer delete (plans/api-users.md, API-00), so they run only when
+           RUN_ACCOUNT_CREATING_TESTS is set: nightly CI or on demand. */
+        ...(process.env.RUN_ACCOUNT_CREATING_TESTS
+            ? [
+                  {
+                      name: 'api-account-creating',
+                      testMatch: ACCOUNT_CREATING_SPECS,
+                      dependencies: ['setup-api'],
+                  },
+              ]
+            : []),
 
         /* Main UI test project - Chrome */
         {

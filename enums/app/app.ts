@@ -30,6 +30,7 @@ export enum ApiEndpoints {
     LOGOUT = '/users/logout',
     CURRENT_USER = '/users/me',
     REGISTER = '/users/register',
+    USERS = '/users',
 }
 
 /**
@@ -39,4 +40,5 @@ export enum ApiEndpoints {
 export enum StorageStatePaths {
     APP = '.auth/app/appStorageState.json',
     API_ACCESS_TOKEN = '.auth/app/apiAccessToken.json',
+    RUN_USER = '.auth/app/runUser.json',
 }

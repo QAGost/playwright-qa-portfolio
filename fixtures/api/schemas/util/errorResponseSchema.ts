@@ -23,7 +23,8 @@ export const UnauthorizedResponseSchema = z.union([
 
 /**
  * Schema for 403 Forbidden responses.
- * FIXME: shape not yet observed live — Laravel convention, unverified.
+ * Live example (2026-11-22): {"message": "Forbidden"} from DELETE /users/{userId}
+ * called by a customer on its own account.
  */
 export const ForbiddenResponseSchema = z.strictObject({
     message: z.string(),
