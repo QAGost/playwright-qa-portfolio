@@ -7,7 +7,11 @@
 - Endpoints in scope: `POST /users/register`, `POST /users/login`, `GET /users/me`,
   `GET /users/logout`. Out of scope for now: the admin endpoints (`GET /users`,
   `/users/{userId}`, `/users/search`), `forgot-password`, `change-password`, `refresh`.
-- Status: Reviewed 2026-11-22; open questions A to D resolved. Next: API-00, then P1.
+- Status: Reviewed 2026-11-22; open questions A to D resolved. Implemented 2026-11-22:
+  self-provisioned run user (reused across runs, verified), API-00 (`users-delete.spec.ts`,
+  uses the run user, creates nothing), API-02 + API-03 (`users-me.spec.ts`), API-01
+  (`users-register.creates-accounts.spec.ts`, runs only with `RUN_ACCOUNT_CREATING_TESTS=1`).
+  Full suite 25/25 green without creating accounts. Next: P2.
 
 ## Why this layer, and why now
 
@@ -128,6 +132,20 @@ either); 404 (no resource id); 204 (no DELETE in scope).
   lockout added to the existing `tests/app/api/login.spec.ts`.
 - **Setup:** `helpers/app/createStorageState.ts` gains `registerRunUser()`;
   `tests/app/auth-api.setup.ts` calls it before minting the token.
+
+## Live results, API-00 run (2026-11-22, one throwaway user)
+
+| Question | Answer | Consequence |
+| --- | --- | --- |
+| Can a customer delete itself? (API-00) | **No: `DELETE /users/{id}` with its own token → 403 `{"message":"Forbidden"}`** | No cleanup possible; the volume limits apply. API-00 becomes a test asserting the 403 (`// OBSERVED` not needed: 403 is documented) |
+| Register | 201; body keys `first_name, last_name, email, dob, phone, id, created_at, address`, all within `CurrentUserSchema` | Reuse confirmed |
+| Lockout | Failed logins 1-3 → 401 `{"error":"Unauthorized"}`; **attempt 4 → 423** `{"error":"Account locked, too many failed attempts. Please contact the administrator."}`; the correct password then also gets 423 | API-09 expects exactly this, `// OBSERVED` |
+| Token issued before the lock | **Still valid: `GET /users/me` → 200 after the account locked** | **Security finding**: locking an account does not end its sessions. Candidate bug report; new scenario API-18 (known defect, `test.fail()` + `// BUG:` if confirmed by the owner) |
+| Validation errors | **422** with a field → messages map (empty body: all four required fields named) | Question C settled: the contract's 400 is stale for validation; tests assert 422 with `// OBSERVED: contract documents 400` and the docs gap is a candidate upstream issue |
+| `GET /users/register` (API-16) | **401** `{"message":"Unauthorized"}`, not 405: the path is routed as `GET /users/{userId}` | API-16 asserts 401 with `// OBSERVED`; a 405 for this path cannot be produced by changing the method |
+
+The throwaway user `pw-autotest-cprpvfu3@example.com` remains on the site, locked (deletion is
+forbidden).
 
 ## Contract findings (from reading the document)
 
