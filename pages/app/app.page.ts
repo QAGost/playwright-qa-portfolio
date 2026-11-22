@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { AppRoutes, Messages } from '../../enums/app/app';
+import { ApiEndpoints, AppRoutes, Messages } from '../../enums/app/app';
 import { NavigationComponent } from '../components/navigation.component';
 
 /**
@@ -62,6 +62,11 @@ export class AppPage {
         return this.page.getByText(Messages.EMAIL_FORMAT_INVALID);
     }
 
+    // Title of the account page a successful login lands on.
+    get accountHeading(): Locator {
+        return this.page.getByRole('heading', { name: 'My account', level: 1 });
+    }
+
     // ==================== Actions ====================
 
     /**
@@ -110,6 +115,38 @@ export class AppPage {
         await this.emailInput.fill(email);
         await this.passwordInput.fill(password);
 
+        await this.loginButton.click();
+    }
+
+    /**
+     * Fills in the credentials, submits the form and waits for the login API
+     * to answer. Use it only when the input passes client-side validation;
+     * otherwise no request is sent and the wait never resolves.
+     *
+     * @param {string} email - The user's email address.
+     * @param {string} password - The user's password.
+     * @returns {Promise<number>} The HTTP status of the login API response.
+     */
+    async loginAndWaitForResponse(
+        email: string,
+        password: string
+    ): Promise<number> {
+        const responsePromise = this.page.waitForResponse(
+            (response) =>
+                response.url().endsWith(ApiEndpoints.LOGIN) &&
+                response.request().method() === 'POST'
+        );
+        await this.login(email, password);
+        const response = await responsePromise;
+        return response.status();
+    }
+
+    /**
+     * Clicks the Login button without filling anything in.
+     *
+     * @returns {Promise<void>} Resolves when the button has been clicked.
+     */
+    async submit(): Promise<void> {
         await this.loginButton.click();
     }
 

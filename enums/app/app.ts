@@ -21,6 +21,7 @@ export enum Messages {
 /** UI route paths */
 export enum AppRoutes {
     LOGIN = '/auth/login',
+    ACCOUNT = '/account',
 }
 
 /** API endpoint paths */
