@@ -133,6 +133,29 @@ either); 404 (no resource id); 204 (no DELETE in scope).
 - **Setup:** `helpers/app/createStorageState.ts` gains `registerRunUser()`;
   `tests/app/auth-api.setup.ts` calls it before minting the token.
 
+## Data retention on the public site (verified 2026-11-22)
+
+Source: the site's privacy policy, https://practicesoftwaretesting.com/privacy, "Data Removal"
+(found by the repo owner, read live with playwright-cli): *"Toolshop automatically removes all
+user data every hour [...] ensuring that no user data is stored beyond the duration of an
+hour."* The page does not say whether this is a fixed job (for example on the hour) or each
+account expiring an hour after creation.
+
+Consequences:
+- **Leftover accounts are a non-issue.** Every account the suite registers is gone within an
+  hour, the locked API-00 probe user included. The volume limits below were written before this
+  was known; they now protect speed, not the site.
+- **The run user lives at most an hour.** Reuse saves registrations within a working session or
+  a burst of CI runs; after a wipe the reuse login fails and the setup registers a new user
+  automatically (the designed fallback, no code change).
+- **Hand-made accounts vanish too.** A personal account for manual exploration must be
+  registered again after each wipe; the tests never need one.
+- **A wipe during a run is a known failure mode.** If the run user is removed mid-run, tests
+  fail with 401 on login or `/users/me`. Diagnosis: check whether the run crossed a wipe; re-run.
+  Recorded for the README's debugging notes.
+- **Never use fixed ids of seeded data.** Products, categories and users may be recreated with
+  new ids; tests look data up (by name, search or API) at run time. Binding for the E2E work.
+
 ## Live results, API-00 run (2026-11-22, one throwaway user)
 
 | Question | Answer | Consequence |
