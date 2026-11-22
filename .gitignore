@@ -28,3 +28,6 @@ env/.env.*
 
 # Python bytecode (hook scripts, eval tooling)
 __pycache__/
+
+# Per-user Claude Code settings (status line etc.)
+.claude/settings.local.json
