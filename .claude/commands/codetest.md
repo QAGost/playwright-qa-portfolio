@@ -79,7 +79,11 @@ changed.
 
 ## Run, read, fix
 
-1. Lint: `npm run lint` (zero warnings).
+1. Static checks, the same as the CI Lint workflow: `npm run lint` (zero warnings),
+   `npx tsc --noEmit`, and `npx prettier --check .` (covers Markdown, YAML and JSON, which
+   ESLint does not; plans and docs fail CI too). Fix formatting with
+   `npx prettier --write <file>`, then re-check: a file that still fails after `--write` has a
+   structural Markdown problem (for example invalid list numbering) to fix by hand.
 2. Run: `npx playwright test tests/app/functional/<name>.spec.ts --reporter=list --workers=1 --retries=0`.
    Always pass `--reporter=list`: the config's default HTML reporter opens a browser on
    failure and blocks the run.
