@@ -5,8 +5,12 @@
   storage state (`npx playwright test --project setup-ui`, then `state-load
   .auth/app/appStorageState.json`).
 - Explored: 2026-11-22 with playwright-cli, viewport 1920x1080
-- Status: Revised 2026-11-22 around users and workflows; awaiting review. P1 and P2 of the
-  first version are implemented (LOGIN-01 to LOGIN-05).
+- Test account: a dedicated account registered for this repo (fake data), credentials only in
+  `env/.env.dev` (gitignored). The public demo account used at first was locked on 2026-11-22
+  (`423 Locked`); see "Account lockout" below. Next step: the setup registers its own fresh
+  user per run, so the suite needs no stored credentials at all.
+- Status: Revised 2026-11-22 around users and workflows; findings checked against upstream
+  issues. Implemented: LOGIN-01 to LOGIN-05 (green, 23/23 in the full suite on 2026-11-22).
 
 ## Users and what they need
 
@@ -37,6 +41,32 @@ what is easiest to automate.
 | Email in capitals (API) | 200 | Works (LOGIN-23) |
 | Email with spaces around it (API) | 401; the form shows no field error and sends the request | Unknown whether the UI trims (LOGIN-24) |
 | `/checkout` while signed out | Opens; sign-in happens inside checkout | Out of scope: an E2E journey |
+
+## Findings and upstream status (checked 2026-11-22)
+
+Checked against the app's public issue tracker, github.com/testsmith-io/practice-software-testing,
+open and closed issues. Facts are separated from inferences; only facts go into a bug report.
+
+| Finding | Observed (fact) | Inferred, not yet verified | Upstream | Next step |
+| --- | --- | --- | --- | --- |
+| Double-click on Login sends two `POST /users/login` | Yes, live | The button is not disabled while the request is pending | Not reported | Verify the button state with a delayed (mocked) response, then file as a bug with the lockout impact |
+| Email pasted with spaces | Form shows no field error and sends the request; the API rejects a padded email (401) | Whether the form trims before sending | Not reported | Implement LOGIN-24; report only if it fails |
+| No return to the originally requested page after login | Yes, live (`/account/favorites` → login → `/account`) | | Not reported | File as an enhancement, not a bug (Open question 8) |
+| Account lockout | `423 Locked` on the demo account, live | | By design: issue #843 (closed) locks an account after **3 consecutive failed logins** | Never fail a login on the test account; see LOGIN-19, LOGIN-25 |
+
+**Why the double-click matters:** with the 3-attempt lockout, one double-click with a mistyped
+password uses up two of the three attempts. That user impact, not test flakiness, is the
+argument for the bug report. (A normal Playwright click fires once; the suite is not affected.)
+
+Report format when filing upstream: follow #843 (`[Bug][Login] <title>`; Context, Steps to
+Reproduce, Expected/Actual, Environment, Impact). Reports are filed by the repo owner from their
+own GitHub account.
+
+**Site versions:** the app also runs as `with-bugs.practicesoftwaretesting.com` (API
+`api-with-bugs.practicesoftwaretesting.com`), a Sprint 5 build with a known-bug list in the
+upstream repo (`sprint5-with-bugs/testSessions/listOfBugs.md`, not yet read). Idea for later:
+run this suite against it to measure which planted bugs the tests catch ("test the tests").
+The upstream README does not state that the main site is bug-free.
 
 ## Page summary
 
@@ -489,14 +519,15 @@ Unless stated otherwise, every scenario starts signed out: `resetStorageState()`
   1. GIVEN valid-format credentials for an email with no account are filled in
   2. WHEN the customer double-clicks Login
   3. THEN exactly one login request is sent
-- Expected: one `POST /users/login`. **Observed live: two.** With a mistyped password, one
-  double-click counts two failed attempts toward any lockout.
+- Expected: one `POST /users/login`. **Observed live: two.** The app locks an account after 3
+  consecutive failed logins (upstream #843), so one double-click with a mistyped password uses
+  two of the three attempts.
 - Data: `generateLoginCredentials()`.
 - Cleanup: none.
 - Visual: none.
 - Evidence screenshots: none.
-- Note: this test is expected to fail today. How to handle a test that documents a known
-  defect is Open question 7.
+- Note: a known defect (Open question 7, option c): written with the correct expectation and
+  marked `test.fail()` with a `// BUG:` line. Upstream status: not reported yet (see Findings).
 
 ### LOGIN-26: After being sent to login from an account page, customer returns there (P4, `@regression`)
 - **Blocked** until Open question 8 is answered.
@@ -507,13 +538,13 @@ Unless stated otherwise, every scenario starts signed out: `resetStorageState()`
 
 ## Code this plan will need
 
-- Page object / component: exists. Login locators live in `pages/app/app.page.ts` (`AppPage`);
-  extend it rather than add `login.page.ts` (see Open questions). New members:
-  `passwordLengthError`, `loginForm`, `loginErrorAlert`, `googleSignInButton`, `registerLink`,
-  `forgotPasswordLink`, `passwordToggle` (blocked), plus actions such as `submitWithEnter`
-  and `togglePasswordVisibility`. `NavigationComponent` already has the sign-in, user-menu and
-  sign-out locators.
-- Fixture registration: exists (`appPage`, `resetStorageState`).
+- Page object / component: login locators stay in `pages/app/app.page.ts` (`AppPage`). New
+  members: `passwordLengthError`, `loginForm`, `loginErrorAlert`, `googleSignInButton`,
+  `registerLink`, `forgotPasswordLink`, `passwordToggle` (approved scoped CSS), plus actions
+  such as `submitWithEnter` and `togglePasswordVisibility`. New `pages/app/account.page.ts`
+  (`AccountPage`: heading, `openAccountPage()`) takes over `accountHeading` (Open question 5).
+  `NavigationComponent` already has the sign-in, user-menu and sign-out locators.
+- Fixture registration: exists (`appPage`, `resetStorageState`); add `accountPage`.
 - Enums (`enums/app/app.ts`): `Messages.PASSWORD_LENGTH_INVALID = 'Password length is invalid'`;
   `AppRoutes.REGISTER = '/auth/register'`; `AppRoutes.FORGOT_PASSWORD = '/auth/forgot-password'`;
   `AppRoutes.ACCOUNT = '/account'`.
@@ -531,8 +562,10 @@ Unless stated otherwise, every scenario starts signed out: `resetStorageState()`
 
 - **Sign in with Google**: a third-party OAuth flow; it can't be automated reliably and isn't this
   app's code. LOGIN-02 could assert the button is visible if wanted.
-- **Account lockout after repeated failures**: not triggered. Trying it on the test account would
-  lock the account every other test uses (`@destructive`), and it needs a dedicated account.
+- **Account lockout after repeated failures**: by design, 3 consecutive failed logins lock an
+  account (upstream #843; the lock message there is "Account locked, too many failed attempts.
+  Please contact the administrator.", not yet seen live). Not tested: it would lock the test
+  account. Testable once the setup registers a throwaway user per run, or with a mocked `423`.
 - **Registration and password-reset pages themselves**: their own `/page` runs.
 - **Nav bar, footer, chat and live-activity widgets**: shared across pages, not login behaviour.
 - **Localisation** (language switcher): changes shared state; a separate plan.
