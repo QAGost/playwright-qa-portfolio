@@ -11,4 +11,8 @@ export const appConfig = {
     apiUrl: process.env.API_URL!,
     /** Products per page in the home page grid (verified live 2026-11-23) */
     homeGridPageSize: 9,
+    /** Currency symbol the shop puts before prices in the cart */
+    currencySymbol: '$',
+    /** Quantity the product page starts with, and what one press of Add to cart adds */
+    defaultQuantity: 1,
 };

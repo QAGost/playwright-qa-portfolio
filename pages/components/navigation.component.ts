@@ -57,7 +57,26 @@ export class NavigationComponent {
         return this.page.getByTestId('nav-sign-out');
     }
 
+    // Cart link in the header; its accessible name is just "cart".
+    get cartLink(): Locator {
+        return this.page.getByRole('link', { name: 'cart', exact: true });
+    }
+
+    // Item count on the cart link (sum of quantities); absent while the cart is empty.
+    get cartQuantity(): Locator {
+        return this.page.getByTestId('cart-quantity');
+    }
+
     // ==================== Actions ====================
+
+    /**
+     * Opens the cart (the first checkout step) from the header link.
+     *
+     * @returns {Promise<void>}
+     */
+    async openCart(): Promise<void> {
+        await this.cartLink.click();
+    }
 
     /**
      * Navigates to the home page via the navigation link.

@@ -1,4 +1,5 @@
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { appConfig } from '../../config/app';
 import { ApiEndpoints, AppRoutes, Messages } from '../../enums/app/app';
 
 /**
@@ -109,12 +110,16 @@ export class HomePage {
     }
 
     /**
-     * Clicks the "X" button to clear the search.
+     * Clicks the "X" button to clear the search and waits until the default
+     * grid is back. Without the wait, a search started right after the reset
+     * can be overwritten by the late grid response.
      *
-     * @returns {Promise<void>} Resolves when the button has been clicked.
+     * @returns {Promise<void>} Resolves when the caption is gone and the default grid is shown.
      */
     async resetSearch(): Promise<void> {
         await this.resetButton.click();
+        await expect(this.searchCaption).toBeHidden();
+        await expect(this.productNames).toHaveCount(appConfig.homeGridPageSize);
     }
 
     private waitForSearchResponse(): Promise<unknown> {

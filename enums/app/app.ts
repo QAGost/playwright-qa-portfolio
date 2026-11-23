@@ -20,6 +20,8 @@ export enum Messages {
     SEARCH_CAPTION_PREFIX = 'Searched for: ',
     /** Result count under the caption; `{count}` and `{term}` are filled in */
     NO_PRODUCTS_FOUND = 'There are no products found.',
+    /** Toast after pressing Add to cart */
+    PRODUCT_ADDED_TO_CART = 'Product added to shopping cart.',
     SEARCH_RESULT_COUNT = "{count} products found for '{term}'",
 }
 
@@ -28,6 +30,8 @@ export enum AppRoutes {
     LOGIN = '/auth/login',
     ACCOUNT = '/account',
     HOME = '/',
+    /** Cart and checkout steps (the cart is the first step) */
+    CHECKOUT = '/checkout',
     /** Product detail pages: `/product/<generated id>` */
     PRODUCT = '/product',
 }
@@ -39,6 +43,7 @@ export enum ApiEndpoints {
     CURRENT_USER = '/users/me',
     REGISTER = '/users/register',
     USERS = '/users',
+    PRODUCTS = '/products',
     PRODUCTS_SEARCH = '/products/search',
 }
 

@@ -12,6 +12,9 @@
 /** Terms that appear in the names of several products (verified live 2026-11-23). */
 export const PRODUCT_NAME_TERMS = ['drill', 'hammer'] as const;
 
+/** A product the shop seeds on every data reset, bought in the product page tests (verified live 2026-11-23). */
+export const PRODUCT_TO_BUY = 'Combination Pliers';
+
 /** A term for the search-then-reset scenario (PS-04). */
 export const RESET_TERM = 'pliers';
 

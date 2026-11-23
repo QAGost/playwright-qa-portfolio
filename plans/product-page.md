@@ -5,7 +5,7 @@
 - Auth: both. Adding to the cart works signed out; favourites need a signed-in user (the run
   user from `.auth/app/appStorageState.json`, loaded with `state-load`).
 - Explored: 2026-11-23 with playwright-cli, viewport 1920x1080
-- Status: Draft, awaiting review
+- Status: P1 implemented 2026-11-23; P2 next (open questions 1 to 6 still to answer)
 - Part of: the E2E checkout journey (search → **product** → cart → checkout → invoice); this
   plan covers its second step. The cart and checkout steps live on `/checkout` and get their own
   plan.
@@ -104,25 +104,25 @@ to the run user and are removed through the API (`GET` then `DELETE`) in `afterE
 
 ## Scenarios
 
-| ID    | Priority | Tag           | User workflow                                                                                  | Visual check          | Status             |
-| ----- | -------- | ------------- | ---------------------------------------------------------------------------------------------- | --------------------- | ------------------ |
-| PP-01 | P1       | `@smoke`      | Shopper sees the product's details (name, price, brand, category, description, specifications) | none                  | planned            |
-| PP-02 | P1       | `@smoke`      | Shopper adds the product to the cart and finds it there                                        | none                  | planned (E2E step) |
-| PP-03 | P2       | `@sanity`     | Shopper adds several: quantity 3 gives a line of 3 at 3 × the price                            | none                  | planned            |
-| PP-04 | P2       | `@sanity`     | Adding the same product again adds to the quantity                                             | none                  | planned            |
-| PP-05 | P2       | `@sanity`     | The cart survives a reload                                                                     | none                  | planned            |
-| PP-06 | P2       | `@sanity`     | A double-click on Add to cart leaves the cart matching the badge                               | none                  | known defect (Q1)  |
-| PP-07 | P2       | `@sanity`     | Signed-out visitor pressing Favourites gets a message and nothing saved                        | none                  | planned            |
-| PP-08 | P2       | `@sanity`     | A product id that does not exist shows a clear "not found" page                                | none                  | blocked (Q2)       |
-| PP-09 | P3       | `@regression` | Signed-in customer adds a favourite and finds it on the account page                           | none                  | planned            |
-| PP-10 | P3       | `@regression` | Adding the same favourite twice says it is already there                                       | none                  | planned            |
-| PP-11 | P3       | `@regression` | The quantity box never goes below 1 (0, negative and text become 1)                            | none                  | planned            |
-| PP-12 | P3       | `@regression` | A related product opens its own, different product page                                        | none                  | planned            |
-| PP-13 | P3       | `@regression` | Keyboard user adds to the cart with Tab and Enter                                              | none                  | planned            |
-| PP-14 | P4       | `@regression` | A product added in one tab is still in the cart in a new tab                                   | none                  | not automated (Q3) |
-| PP-15 | P4       | `@regression` | Compare gives visible feedback                                                                 | none                  | not automated (Q5) |
-| PP-16 | P4       | `@regression` | Quantity maximum (99) and decimals                                                             | none                  | not automated (Q4) |
-| PP-17 | P5       | `@regression` | Purchase controls accessibility structure                                                      | `toMatchAriaSnapshot` | planned            |
+| ID    | Priority | Tag           | User workflow                                                                                  | Visual check          | Status                 |
+| ----- | -------- | ------------- | ---------------------------------------------------------------------------------------------- | --------------------- | ---------------------- |
+| PP-01 | P1       | `@smoke`      | Shopper sees the product's details (name, price, brand, category, description, specifications) | none                  | implemented            |
+| PP-02 | P1       | `@smoke`      | Shopper adds the product to the cart and finds it there                                        | none                  | implemented (E2E step) |
+| PP-03 | P2       | `@sanity`     | Shopper adds several: quantity 3 gives a line of 3 at 3 × the price                            | none                  | planned                |
+| PP-04 | P2       | `@sanity`     | Adding the same product again adds to the quantity                                             | none                  | planned                |
+| PP-05 | P2       | `@sanity`     | The cart survives a reload                                                                     | none                  | planned                |
+| PP-06 | P2       | `@sanity`     | A double-click on Add to cart leaves the cart matching the badge                               | none                  | known defect (Q1)      |
+| PP-07 | P2       | `@sanity`     | Signed-out visitor pressing Favourites gets a message and nothing saved                        | none                  | planned                |
+| PP-08 | P2       | `@sanity`     | A product id that does not exist shows a clear "not found" page                                | none                  | blocked (Q2)           |
+| PP-09 | P3       | `@regression` | Signed-in customer adds a favourite and finds it on the account page                           | none                  | planned                |
+| PP-10 | P3       | `@regression` | Adding the same favourite twice says it is already there                                       | none                  | planned                |
+| PP-11 | P3       | `@regression` | The quantity box never goes below 1 (0, negative and text become 1)                            | none                  | planned                |
+| PP-12 | P3       | `@regression` | A related product opens its own, different product page                                        | none                  | planned                |
+| PP-13 | P3       | `@regression` | Keyboard user adds to the cart with Tab and Enter                                              | none                  | planned                |
+| PP-14 | P4       | `@regression` | A product added in one tab is still in the cart in a new tab                                   | none                  | not automated (Q3)     |
+| PP-15 | P4       | `@regression` | Compare gives visible feedback                                                                 | none                  | not automated (Q5)     |
+| PP-16 | P4       | `@regression` | Quantity maximum (99) and decimals                                                             | none                  | not automated (Q4)     |
+| PP-17 | P5       | `@regression` | Purchase controls accessibility structure                                                      | `toMatchAriaSnapshot` | planned                |
 
 All scenarios open the product by searching for a curated product **name** (never an id) and
 run signed out, except PP-09 and PP-10 (run user). The cart is anonymous per browser tab, so
