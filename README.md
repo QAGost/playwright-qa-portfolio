@@ -3,8 +3,8 @@
 [![Lint](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/lint.yml/badge.svg)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/lint.yml)
 [![Playwright Tests (API)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/playwright.yml/badge.svg)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/playwright.yml)
 
-By **Goran Ost**, Principal QA for the past three years, looking for a Senior or Principal QA
-role.
+By **Goran Ost**: 20 years in QA, the last three as Principal QA, looking for a Senior or
+Principal QA role.
 
 **Start here:** the [login test plan](plans/login.md) (test design), the
 [login tests](tests/app/functional/login.spec.ts) (P1 and P2) and the
