@@ -23,6 +23,8 @@ export enum Messages {
     /** Toast after pressing Add to cart */
     PRODUCT_ADDED_TO_CART = 'Product added to shopping cart.',
     SEARCH_RESULT_COUNT = "{count} products found for '{term}'",
+    /** Toast when a signed-out visitor presses Add to favourites */
+    FAVOURITE_UNAUTHORIZED = 'Unauthorized, can not add product to your favorite list.',
     /** Wizard step 2 for a signed-in shopper (after the greeting and name) */
     ALREADY_LOGGED_IN = 'you are already logged in',
     /** Wizard step 4 after "Check payment" */
@@ -62,6 +64,7 @@ export enum ApiEndpoints {
     USERS = '/users',
     PRODUCTS = '/products',
     PRODUCTS_SEARCH = '/products/search',
+    FAVORITES = '/favorites',
 }
 
 /**

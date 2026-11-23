@@ -15,6 +15,10 @@ export const appConfig = {
     currencySymbol: '$',
     /** Quantity the product page starts with, and what one press of Add to cart adds */
     defaultQuantity: 1,
+    /** A quantity above one that tests buy in a single add (PP-03) */
+    severalQuantity: 3,
+    /** HTTP status of an unauthenticated request */
+    unauthorizedStatus: 401,
     /** Decimal places the shop shows in prices */
     priceDecimals: 2,
 };

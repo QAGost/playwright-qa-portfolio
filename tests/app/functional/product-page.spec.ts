@@ -157,4 +157,143 @@ test.describe('functional product page', () => {
             });
         }
     );
+
+    // PP-03
+    test(
+        'should add several at once and price the line at that many times the unit price',
+        { tag: '@sanity' },
+        async ({ appPage, productPage, checkoutPage }) => {
+            const quantity = appConfig.severalQuantity;
+            let unitPrice = '';
+
+            await test.step('WHEN the shopper raises the quantity and adds to cart', async () => {
+                unitPrice = (await productPage.unitPrice.innerText()).trim();
+                await productPage.increaseQuantity(quantity - 1);
+                await expect(productPage.quantityBox).toHaveValue(
+                    String(quantity)
+                );
+                await productPage.addToCart();
+            });
+
+            await test.step('THEN the cart count and the line show that quantity at that many times the price', async () => {
+                await expect(appPage.nav.cartQuantity).toHaveText(
+                    String(quantity)
+                );
+                await appPage.nav.openCart();
+                await expect(checkoutPage.lineQuantities).toHaveValue(
+                    String(quantity)
+                );
+                const lineTotal = (Number(unitPrice) * quantity).toFixed(
+                    appConfig.priceDecimals
+                );
+                await expect(checkoutPage.linePrices).toHaveText(
+                    checkoutPage.priceText(lineTotal)
+                );
+            });
+        }
+    );
+
+    // PP-04
+    test(
+        'should add to the same line when the product is added again',
+        { tag: '@sanity' },
+        async ({ appPage, productPage, checkoutPage }) => {
+            const twice = appConfig.defaultQuantity * 2;
+
+            await test.step('GIVEN one unit is in the cart', async () => {
+                await productPage.addToCart();
+                await expect(appPage.nav.cartQuantity).toHaveText(
+                    String(appConfig.defaultQuantity)
+                );
+            });
+
+            await test.step('WHEN the shopper adds it again', async () => {
+                await productPage.addToCart();
+                await expect(appPage.nav.cartQuantity).toHaveText(
+                    String(twice)
+                );
+            });
+
+            await test.step('THEN the cart has one line with the summed quantity', async () => {
+                await appPage.nav.openCart();
+                await expect(checkoutPage.productTitles).toHaveText([
+                    PRODUCT_TO_BUY,
+                ]);
+                await expect(checkoutPage.lineQuantities).toHaveValue(
+                    String(twice)
+                );
+            });
+        }
+    );
+
+    // PP-05
+    test(
+        'should keep the cart when the page is reloaded',
+        { tag: '@sanity' },
+        async ({ page, appPage, productPage, checkoutPage }) => {
+            await test.step('GIVEN a product is in the cart', async () => {
+                await productPage.addToCart();
+                await expect(appPage.nav.cartQuantity).toHaveText(
+                    String(appConfig.defaultQuantity)
+                );
+            });
+
+            await test.step('WHEN the shopper reloads the page', async () => {
+                await page.reload();
+            });
+
+            await test.step('THEN the cart still holds the same product and count', async () => {
+                await expect(appPage.nav.cartQuantity).toHaveText(
+                    String(appConfig.defaultQuantity)
+                );
+                await appPage.nav.openCart();
+                await expect(checkoutPage.productTitles).toHaveText([
+                    PRODUCT_TO_BUY,
+                ]);
+            });
+        }
+    );
+
+    // PP-06
+    test(
+        'should leave the cart matching the badge after a double-click on Add to cart',
+        { tag: '@sanity' },
+        async ({ appPage, productPage, checkoutPage }) => {
+            // BUG: the badge counts both clicks but the cart holds one, observed 2026-11-23, see plans/product-page.md PP-06
+            test.fail();
+
+            let badge = '';
+
+            await test.step('WHEN the shopper double-clicks "Add to cart"', async () => {
+                await productPage.doubleClickAddToCart();
+                await expect(appPage.nav.cartQuantity).toBeVisible();
+                badge = (await appPage.nav.cartQuantity.innerText()).trim();
+            });
+
+            await test.step('THEN the cart line holds the quantity the badge shows', async () => {
+                await appPage.nav.openCart();
+                await expect(checkoutPage.lineQuantities).toHaveValue(badge);
+            });
+        }
+    );
+
+    // PP-07
+    test(
+        'should tell a signed-out visitor they cannot add a favourite',
+        { tag: '@sanity' },
+        async ({ productPage }) => {
+            let status = 0;
+
+            await test.step('WHEN the signed-out visitor presses "Add to favourites"', async () => {
+                status = await productPage.addToFavourites();
+            });
+
+            await test.step('THEN the API refuses and the shopper is told why', async () => {
+                expect(status).toBe(appConfig.unauthorizedStatus);
+                await expect(
+                    productPage.favouriteUnauthorizedToast
+                ).toBeVisible();
+            });
+        }
+    );
 });

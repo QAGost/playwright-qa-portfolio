@@ -1,5 +1,5 @@
 import { Locator, Page } from '@playwright/test';
-import { Messages } from '../../enums/app/app';
+import { ApiEndpoints, Messages } from '../../enums/app/app';
 
 /**
  * Page Object for a product detail page (`/product/<generated id>`).
@@ -56,6 +56,20 @@ export class ProductPage {
         return this.page.getByRole('button', { name: 'Compare' });
     }
 
+    // Spinbutton named "Quantity"; starts at 1.
+    get quantityBox(): Locator {
+        return this.page.getByRole('spinbutton', { name: 'Quantity' });
+    }
+
+    get increaseQuantityButton(): Locator {
+        return this.page.getByRole('button', { name: 'Increase quantity' });
+    }
+
+    // Toast, no role; it disappears after about two seconds.
+    get favouriteUnauthorizedToast(): Locator {
+        return this.page.getByText(Messages.FAVOURITE_UNAUTHORIZED);
+    }
+
     // Toast, no role; it disappears after about two seconds.
     get addedToCartToast(): Locator {
         return this.page.getByText(Messages.PRODUCT_ADDED_TO_CART);
@@ -75,6 +89,42 @@ export class ProductPage {
             throw new Error('The address holds no product id');
         }
         return id;
+    }
+
+    /**
+     * Presses "Increase quantity" a number of times.
+     *
+     * @param {number} times - How many presses.
+     * @returns {Promise<void>} Resolves when the last press has been made.
+     */
+    async increaseQuantity(times: number): Promise<void> {
+        for (let press = 0; press < times; press++) {
+            await this.increaseQuantityButton.click();
+        }
+    }
+
+    /**
+     * Double-clicks "Add to cart", as an impatient shopper does.
+     *
+     * @returns {Promise<void>} Resolves when the double-click has been made.
+     */
+    async doubleClickAddToCart(): Promise<void> {
+        await this.addToCartButton.dblclick();
+    }
+
+    /**
+     * Presses "Add to favourites" and reports what the API answered.
+     *
+     * @returns {Promise<number>} The HTTP status of `POST /favorites`.
+     */
+    async addToFavourites(): Promise<number> {
+        const response = this.page.waitForResponse(
+            (res) =>
+                res.url().endsWith(ApiEndpoints.FAVORITES) &&
+                res.request().method() === 'POST'
+        );
+        await this.addToFavouritesButton.click();
+        return (await response).status();
     }
 
     /**
