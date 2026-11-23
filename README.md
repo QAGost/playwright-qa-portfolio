@@ -3,6 +3,13 @@
 [![Lint](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/lint.yml/badge.svg)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/lint.yml)
 [![Playwright Tests (API)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/playwright.yml/badge.svg)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/playwright.yml)
 
+By **Goran Ost**, Principal QA for the past three years, looking for a Senior or Principal QA
+role.
+
+**Start here:** the [login test plan](plans/login.md) (test design), the
+[login tests](tests/app/functional/login.spec.ts) (P1 and P2) and the
+[double-click bug report](docs/bug-reports/login-double-click.md) (a finding with evidence).
+
 A risk-based test suite in **Playwright and TypeScript** for
 [practicesoftwaretesting.com](https://practicesoftwaretesting.com), a public demo web shop built
 for testers. It covers the API and the UI in one framework that shares schemas, test data and
