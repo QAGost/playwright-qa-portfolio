@@ -1,5 +1,9 @@
 import { appConfig } from '../../../config/app';
-import { AppRoutes } from '../../../enums/app/app';
+import { ApiEndpoints, AppRoutes } from '../../../enums/app/app';
+import {
+    Product,
+    ProductSchema,
+} from '../../../fixtures/api/schemas/app/productSchema';
 import { expect, test } from '../../../fixtures/pom/test-options';
 import { PRODUCT_TO_BUY } from '../../../test-data/static/app/search-terms';
 
@@ -46,6 +50,61 @@ test.describe('functional product page', () => {
                     body: await page.screenshot(),
                     contentType: 'image/png',
                 });
+            });
+        }
+    );
+
+    // PP-18
+    test(
+        'should show the same details as the API',
+        { tag: '@smoke' },
+        async ({ productPage, apiRequest }) => {
+            let product: Product = {};
+
+            await test.step('GIVEN the API holds this product (GET /products/<id>)', async () => {
+                const { status, body } = await apiRequest<Product>({
+                    method: 'GET',
+                    url: `${ApiEndpoints.PRODUCTS}/${productPage.productId()}`,
+                    baseUrl: process.env.API_URL,
+                });
+
+                expect(status).toBe(200);
+                expect(ProductSchema.parse(body)).toBeTruthy();
+                product = ProductSchema.parse(body);
+                // Every field is optional in the contract: make sure the ones compared exist.
+                expect(product.name).toBeTruthy();
+                expect(product.price).toBeGreaterThan(0);
+                expect(product.category?.name).toBeTruthy();
+                expect(product.brand?.name).toBeTruthy();
+                expect(product.description).toBeTruthy();
+            });
+
+            await test.step('THEN the page shows the same name, price, category, brand and description', async () => {
+                await expect(productPage.productName).toHaveText(
+                    product.name ?? ''
+                );
+                await expect(productPage.unitPrice).toHaveText(
+                    (product.price ?? 0).toFixed(appConfig.priceDecimals)
+                );
+                await expect(productPage.category).toHaveText(
+                    product.category?.name ?? ''
+                );
+                await expect(productPage.brand).toHaveText(
+                    product.brand?.name ?? ''
+                );
+                await expect(productPage.description).toHaveText(
+                    product.description ?? ''
+                );
+            });
+
+            await test.step('AND lists the same specifications, in the same order', async () => {
+                const specNames = (product.specs ?? []).map(
+                    (spec) => spec.spec_name ?? ''
+                );
+                expect(specNames.length).toBeGreaterThan(0);
+                await expect(productPage.specificationNames).toHaveText(
+                    specNames
+                );
             });
         }
     );

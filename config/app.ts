@@ -15,4 +15,6 @@ export const appConfig = {
     currencySymbol: '$',
     /** Quantity the product page starts with, and what one press of Add to cart adds */
     defaultQuantity: 1,
+    /** Decimal places the shop shows in prices */
+    priceDecimals: 2,
 };

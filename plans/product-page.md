@@ -104,25 +104,26 @@ to the run user and are removed through the API (`GET` then `DELETE`) in `afterE
 
 ## Scenarios
 
-| ID    | Priority | Tag           | User workflow                                                                                  | Visual check          | Status                 |
-| ----- | -------- | ------------- | ---------------------------------------------------------------------------------------------- | --------------------- | ---------------------- |
-| PP-01 | P1       | `@smoke`      | Shopper sees the product's details (name, price, brand, category, description, specifications) | none                  | implemented            |
-| PP-02 | P1       | `@smoke`      | Shopper adds the product to the cart and finds it there                                        | none                  | implemented (E2E step) |
-| PP-03 | P2       | `@sanity`     | Shopper adds several: quantity 3 gives a line of 3 at 3 × the price                            | none                  | planned                |
-| PP-04 | P2       | `@sanity`     | Adding the same product again adds to the quantity                                             | none                  | planned                |
-| PP-05 | P2       | `@sanity`     | The cart survives a reload                                                                     | none                  | planned                |
-| PP-06 | P2       | `@sanity`     | A double-click on Add to cart leaves the cart matching the badge                               | none                  | known defect (Q1)      |
-| PP-07 | P2       | `@sanity`     | Signed-out visitor pressing Favourites gets a message and nothing saved                        | none                  | planned                |
-| PP-08 | P2       | `@sanity`     | A product id that does not exist shows a clear "not found" page                                | none                  | blocked (Q2)           |
-| PP-09 | P3       | `@regression` | Signed-in customer adds a favourite and finds it on the account page                           | none                  | planned                |
-| PP-10 | P3       | `@regression` | Adding the same favourite twice says it is already there                                       | none                  | planned                |
-| PP-11 | P3       | `@regression` | The quantity box never goes below 1 (0, negative and text become 1)                            | none                  | planned                |
-| PP-12 | P3       | `@regression` | A related product opens its own, different product page                                        | none                  | planned                |
-| PP-13 | P3       | `@regression` | Keyboard user adds to the cart with Tab and Enter                                              | none                  | planned                |
-| PP-14 | P4       | `@regression` | A product added in one tab is still in the cart in a new tab                                   | none                  | not automated (Q3)     |
-| PP-15 | P4       | `@regression` | Compare gives visible feedback                                                                 | none                  | not automated (Q5)     |
-| PP-16 | P4       | `@regression` | Quantity maximum (99) and decimals                                                             | none                  | not automated (Q4)     |
-| PP-17 | P5       | `@regression` | Purchase controls accessibility structure                                                      | `toMatchAriaSnapshot` | planned                |
+| ID    | Priority | Tag           | User workflow                                                                                                  | Visual check          | Status                 |
+| ----- | -------- | ------------- | -------------------------------------------------------------------------------------------------------------- | --------------------- | ---------------------- |
+| PP-01 | P1       | `@smoke`      | Shopper sees the product's details (name, price, brand, category, description, specifications)                 | none                  | implemented            |
+| PP-02 | P1       | `@smoke`      | Shopper adds the product to the cart and finds it there                                                        | none                  | implemented (E2E step) |
+| PP-18 | P1       | `@smoke`      | The product page shows the same details as the API (name, price, category, brand, description, specifications) | none                  | implemented            |
+| PP-03 | P2       | `@sanity`     | Shopper adds several: quantity 3 gives a line of 3 at 3 × the price                                            | none                  | planned                |
+| PP-04 | P2       | `@sanity`     | Adding the same product again adds to the quantity                                                             | none                  | planned                |
+| PP-05 | P2       | `@sanity`     | The cart survives a reload                                                                                     | none                  | planned                |
+| PP-06 | P2       | `@sanity`     | A double-click on Add to cart leaves the cart matching the badge                                               | none                  | known defect (Q1)      |
+| PP-07 | P2       | `@sanity`     | Signed-out visitor pressing Favourites gets a message and nothing saved                                        | none                  | planned                |
+| PP-08 | P2       | `@sanity`     | A product id that does not exist shows a clear "not found" page                                                | none                  | blocked (Q2)           |
+| PP-09 | P3       | `@regression` | Signed-in customer adds a favourite and finds it on the account page                                           | none                  | planned                |
+| PP-10 | P3       | `@regression` | Adding the same favourite twice says it is already there                                                       | none                  | planned                |
+| PP-11 | P3       | `@regression` | The quantity box never goes below 1 (0, negative and text become 1)                                            | none                  | planned                |
+| PP-12 | P3       | `@regression` | A related product opens its own, different product page                                                        | none                  | planned                |
+| PP-13 | P3       | `@regression` | Keyboard user adds to the cart with Tab and Enter                                                              | none                  | planned                |
+| PP-14 | P4       | `@regression` | A product added in one tab is still in the cart in a new tab                                                   | none                  | not automated (Q3)     |
+| PP-15 | P4       | `@regression` | Compare gives visible feedback                                                                                 | none                  | not automated (Q5)     |
+| PP-16 | P4       | `@regression` | Quantity maximum (99) and decimals                                                                             | none                  | not automated (Q4)     |
+| PP-17 | P5       | `@regression` | Purchase controls accessibility structure                                                                      | `toMatchAriaSnapshot` | planned                |
 
 All scenarios open the product by searching for a curated product **name** (never an id) and
 run signed out, except PP-09 and PP-10 (run user). The cart is anonymous per browser tab, so
@@ -161,6 +162,21 @@ favourites; they mutate only the run user's own data, so they are `@regression`,
 - Cleanup: none (anonymous cart).
 - Visual: none.
 - Evidence screenshots: the toast; the cart.
+
+### PP-18: The product page shows the same details as the API (P1, `@smoke`)
+
+- Added 2026-11-23 at the reviewer's request: compare what the UI shows with what the backend
+  holds, so a rendering, rounding or field-mapping mistake is caught.
+- Steps: GIVEN the product on screen is read through `GET /products/<id>` (the id comes from
+  the address; the response is validated against a strict schema built from the contract);
+  THEN the page shows the same name, price (to two decimals), category, brand and description;
+  AND the specification names match the API's `specs`, in the same order.
+- Contract note: `ProductResponse` does not document the `specs` array that the live response
+  contains (`OBSERVED`, recorded in `productSchema.ts`); `brand` has no `slug` live.
+- The API and the UI share one backend, so this proves the UI is faithful to what the backend
+  returns, not that the backend is right.
+- Data: curated product name; no hardcoded values from the API.
+- Cleanup: none: read-only.
 
 ### PP-03: Quantity 3 gives a line of 3 at 3 × the price (P2, `@sanity`)
 
@@ -262,7 +278,8 @@ favourites; they mutate only the run user's own data, so they are `@regression`,
   `test-data/static/app/search-terms.ts`; invalid quantities (`0`, `-3`, `abc`) in
   `test-data/static/util/invalid-values.ts`.
 - Factories: random unknown product id (`faker.string.alphanumeric`) for PP-08.
-- Schemas: the favourites list response for the PP-09 cleanup (`z.strictObject`, built from the
+- Schemas: `fixtures/api/schemas/app/productSchema.ts` (product, built from `ProductResponse`);
+  the favourites list response for the PP-09 cleanup (`z.strictObject`, built from the
   OpenAPI document, which `/codetest` re-reads first).
 - Config: none.
 

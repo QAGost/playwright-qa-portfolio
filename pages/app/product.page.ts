@@ -39,6 +39,11 @@ export class ProductPage {
         return this.page.getByRole('table').getByRole('row');
     }
 
+    // Names of the specification rows, in display order.
+    get specificationNames(): Locator {
+        return this.page.getByTestId('spec-name');
+    }
+
     get addToCartButton(): Locator {
         return this.page.getByRole('button', { name: 'Add to cart' });
     }
@@ -57,6 +62,20 @@ export class ProductPage {
     }
 
     // ==================== Actions ====================
+
+    /**
+     * Reads the product id from the address (`/product/<id>`), so a test can
+     * look the same product up through the API.
+     *
+     * @returns {string} The generated id of the product on screen.
+     */
+    productId(): string {
+        const id = new URL(this.page.url()).pathname.split('/').pop();
+        if (!id) {
+            throw new Error('The address holds no product id');
+        }
+        return id;
+    }
 
     /**
      * Presses "Add to cart" once.
