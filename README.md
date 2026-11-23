@@ -71,14 +71,21 @@ mocking.
 
 Found while exploring and testing, each recorded with the evidence behind it:
 
-| Finding                                                                                                                             | Type             | Evidence and status                                                                   |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------- |
-| A double-click on Login sends **two** login requests; with the 3-attempt lockout, one double-click with a typo may use two attempts | Defect           | [Bug report](docs/bug-reports/login-double-click.md), drafted; not yet filed upstream |
-| Locking an account does **not** end its existing sessions: a token issued before the lock still works                               | Security finding | Observed live via the API ([plan](plans/api-users.md)); report to be written          |
-| After being sent to login from an account page, users land on `/account`, not where they were                                       | UX gap           | Observed live ([plan](plans/login.md)); candidate enhancement request                 |
-| Validation errors return **422**; the OpenAPI contract documents **400**                                                            | Contract gap     | Observed live; tests follow the live behaviour with an `// OBSERVED` note             |
-| `POST /users/login` documents only **200**; 401 and 423 happen live                                                                 | Contract gap     | Observed live                                                                         |
-| The register form requires house number and state; the API marks the address optional                                               | UI/API mismatch  | Observed live; candidate for a register plan                                          |
+| Finding                                                                                                                             | Type             | Severity | Evidence and status                                                                                     |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| Double-clicking **Add to cart** shows 2 in the header but the cart holds 1 (two carts are created)                                  | Defect           | Medium   | Reproduced by hand and 4 of 4 times in tests; known-defect test planned ([plan](plans/product-page.md)) |
+| Locking an account does **not** end its existing sessions: a token issued before the lock still works                               | Security finding | Medium   | Reproduced 2026-11-23 on a throwaway user ([plan](plans/api-users.md)); report to be written            |
+| A double-click on Login sends **two** login requests; with the 3-attempt lockout, one double-click with a typo may use two attempts | Defect           | Low      | [Bug report](docs/bug-reports/login-double-click.md), reproduced by hand; not yet filed upstream        |
+| Sorting search results changes which products match ("hammer": 6 becomes 7); search and sort use two different API endpoints        | Defect           | Low      | Reproduced by hand in the Network tab; known-defect test in the suite                                   |
+| Back from a product page loses the search; the address never changes                                                                | UX defect        | Low      | Known-defect test in the suite ([plan](plans/product-search.md))                                        |
+| An unknown or outdated product id shows a blank page, and the related-products call returns 500                                     | Defect           | Low      | Observed live ([plan](plans/product-page.md))                                                           |
+| After being sent to login from an account page, users land on `/account`, not where they were                                       | UX gap           | Low      | Observed live ([plan](plans/login.md))                                                                  |
+| Validation errors return **422**; the OpenAPI contract documents **400**                                                            | Contract gap     | Low      | Observed live; tests follow the live behaviour with an `// OBSERVED` note                               |
+| `POST /users/login` documents only **200**; 401 and 423 happen live                                                                 | Contract gap     | Low      | Observed live                                                                                           |
+| The register form requires house number and state; the API marks the address optional                                               | UI/API mismatch  | Low      | Observed live; candidate for a register plan                                                            |
+
+Severity is my estimate of the impact if this were a live shop. Every finding is checked by hand
+([checklist](docs/manual-verification.md)) before it is called a defect.
 
 None of these has been filed upstream yet. The lockout itself is by design (upstream issue
 #843).
