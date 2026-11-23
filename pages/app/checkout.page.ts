@@ -1,5 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { appConfig } from '../../config/app';
+import { Messages } from '../../enums/app/app';
 
 /**
  * Page Object for the checkout wizard (`/checkout`). Only the cart step, its
@@ -27,6 +28,57 @@ export class CheckoutPage {
 
     get cartTotal(): Locator {
         return this.page.getByTestId('cart-total');
+    }
+
+    // ==================== Locators (steps 2 to 4) ====================
+
+    // Shown on every step; only one is on screen at a time.
+    get proceedButton(): Locator {
+        return this.page.getByRole('button', { name: 'Proceed to checkout' });
+    }
+
+    get alreadyLoggedInNotice(): Locator {
+        return this.page.getByText(Messages.ALREADY_LOGGED_IN);
+    }
+
+    get billingStreet(): Locator {
+        return this.page.getByLabel('Street');
+    }
+
+    get paymentMethod(): Locator {
+        return this.page.getByLabel('Payment Method');
+    }
+
+    // Disabled until a payment method is chosen.
+    get checkPaymentButton(): Locator {
+        return this.page.getByRole('button', { name: 'Check payment' });
+    }
+
+    get paymentSuccessMessage(): Locator {
+        return this.page.getByText(Messages.PAYMENT_SUCCESSFUL);
+    }
+
+    get confirmButton(): Locator {
+        return this.page.getByRole('button', { name: 'Confirm' });
+    }
+
+    get orderConfirmation(): Locator {
+        return this.page.getByText(Messages.ORDER_THANKS_PREFIX);
+    }
+
+    // ==================== Actions ====================
+
+    /**
+     * Reads the invoice number out of the order confirmation.
+     *
+     * @returns {Promise<string>} The invoice number, e.g. "INV-2026000007".
+     */
+    async invoiceNumber(): Promise<string> {
+        const text = await this.orderConfirmation.innerText();
+        return text
+            .replace(Messages.ORDER_THANKS_PREFIX, '')
+            .replace(/\.$/, '')
+            .trim();
     }
 
     // ==================== Helpers ====================

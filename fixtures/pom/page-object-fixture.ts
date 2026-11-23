@@ -2,6 +2,7 @@ import { test as base } from '@playwright/test';
 import { AppPage } from '../../pages/app/app.page';
 import { CheckoutPage } from '../../pages/app/checkout.page';
 import { HomePage } from '../../pages/app/home.page';
+import { InvoicesPage } from '../../pages/app/invoices.page';
 import { ProductPage } from '../../pages/app/product.page';
 
 /**
@@ -15,8 +16,10 @@ export type FrameworkFixtures = {
     homePage: HomePage;
     /** Product detail page */
     productPage: ProductPage;
-    /** Checkout wizard (cart step so far) */
+    /** Checkout wizard: cart, sign-in, billing address and payment */
     checkoutPage: CheckoutPage;
+    /** The signed-in shopper's invoice list */
+    invoicesPage: InvoicesPage;
     /** Clears cookies, permissions and the app's web storage so the test starts signed out */
     resetStorageState: () => Promise<void>;
 };
@@ -50,6 +53,10 @@ export const test = base.extend<FrameworkFixtures>({
 
     checkoutPage: async ({ page }, use) => {
         await use(new CheckoutPage(page));
+    },
+
+    invoicesPage: async ({ page }, use) => {
+        await use(new InvoicesPage(page));
     },
 
     resetStorageState: async ({ context, page }, use) => {

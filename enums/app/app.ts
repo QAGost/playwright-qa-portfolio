@@ -23,6 +23,21 @@ export enum Messages {
     /** Toast after pressing Add to cart */
     PRODUCT_ADDED_TO_CART = 'Product added to shopping cart.',
     SEARCH_RESULT_COUNT = "{count} products found for '{term}'",
+    /** Wizard step 2 for a signed-in shopper (after the greeting and name) */
+    ALREADY_LOGGED_IN = 'you are already logged in',
+    /** Wizard step 4 after "Check payment" */
+    PAYMENT_SUCCESSFUL = 'Payment was successful',
+    /** Wizard confirmation; the invoice number follows */
+    ORDER_THANKS_PREFIX = 'Thanks for your order! Your invoice number is ',
+}
+
+/** Payment methods offered in the checkout (labels as shown in the select) */
+export enum PaymentMethods {
+    BANK_TRANSFER = 'Bank Transfer',
+    CASH_ON_DELIVERY = 'Cash on Delivery',
+    CREDIT_CARD = 'Credit Card',
+    BUY_NOW_PAY_LATER = 'Buy Now Pay Later',
+    GIFT_CARD = 'Gift Card',
 }
 
 /** UI route paths */
@@ -34,6 +49,8 @@ export enum AppRoutes {
     CHECKOUT = '/checkout',
     /** Product detail pages: `/product/<generated id>` */
     PRODUCT = '/product',
+    /** The signed-in shopper's invoices */
+    INVOICES = '/account/invoices',
 }
 
 /** API endpoint paths */
