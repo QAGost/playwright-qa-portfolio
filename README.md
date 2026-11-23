@@ -155,6 +155,21 @@ No account or password is needed: the first run registers a test user automatica
 site's hourly data wipe removed the test user; run again. A `423` means an account was locked
 after three failed logins.
 
+### Tried: the "with bugs" build
+
+The demo's maintainers also host `with-bugs.practicesoftwaretesting.com`, a copy with seeded
+defects. I ran this suite against it (`ENVIRONMENT=bugs`, a gitignored `env/.env.bugs`) on
+2026-11-23: 9 passed, 4 failed and 31 did not run. It is an **older build**, not the main site plus
+bugs, so the failures are version differences, not seeded bugs:
+
+- Registration takes a flat `address`, `city`, `country` and `postcode` instead of a nested address
+  object (422 on our payload), and the user response carries extra keys that the strict schema rejects.
+- Opening `/auth/login` directly returns a server 404 (no single-page-app fallback), so the UI setup
+  fails and no UI test can run.
+
+Running the suite there would need per-environment payloads and navigation from the home page, so
+it is parked. Hunting the seeded bugs by hand is the cheaper use of that site.
+
 ## CI
 
 GitHub Actions runs on every push to `main`:
@@ -189,7 +204,7 @@ enums/, config/           routes, endpoints, messages, settings
 
 1. Users API P2: duplicate email, missing or invalid token, logout ends the token, lockout.
 2. Login P3 to P5, including the accessibility snapshot and the known-defect tests.
-3. E2E checkout journey.
+3. More checkout scenarios: quantity change, guest sign-in, other payment methods (plans/checkout.md).
 4. CI against a Dockerised copy of the app, with the UI tests included.
 5. File the findings upstream.
 6. Performance tests with k6, in a separate repository.
