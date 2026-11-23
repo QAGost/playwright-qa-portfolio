@@ -11,3 +11,9 @@
 
 /** Terms that appear in the names of several products (verified live 2026-11-23). */
 export const PRODUCT_NAME_TERMS = ['drill', 'hammer'] as const;
+
+/** A term for the search-then-reset scenario (PS-04). */
+export const RESET_TERM = 'pliers';
+
+/** Harmless markup the search must show as text, never render (PS-16). */
+export const MARKUP_PROBES = ['<b>bold</b>'] as const;

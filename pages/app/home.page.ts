@@ -1,5 +1,5 @@
 import { Locator, Page } from '@playwright/test';
-import { AppRoutes, Messages } from '../../enums/app/app';
+import { ApiEndpoints, AppRoutes, Messages } from '../../enums/app/app';
 
 /**
  * Page Object for the home page (`/`): product search, sort, filters and the
@@ -35,6 +35,19 @@ export class HomePage {
         return this.page.getByTestId('search_completed');
     }
 
+    // The accessible name is just "X" (an accessibility finding in the plan).
+    get resetButton(): Locator {
+        return this.page.getByRole('button', { name: 'X' });
+    }
+
+    get noResultsMessage(): Locator {
+        return this.page.getByText(Messages.NO_PRODUCTS_FOUND);
+    }
+
+    get nextPageButton(): Locator {
+        return this.page.getByRole('button', { name: 'Next' });
+    }
+
     get productNames(): Locator {
         return this.page.getByTestId('product-name');
     }
@@ -64,16 +77,52 @@ export class HomePage {
     }
 
     /**
-     * Searches with the Search button and waits until the app marks the
-     * search as finished.
+     * Searches with the Search button and waits until the results are shown.
+     * The wait is on the search API response, because the app's
+     * `search_completed` marker stays in the page after a reset and would
+     * let a second search return early.
      *
      * @param {string} term - The text to search for.
-     * @returns {Promise<void>} Resolves when the results are rendered.
+     * @returns {Promise<void>} Resolves when the result count is rendered.
      */
     async search(term: string): Promise<void> {
         await this.searchInput.fill(term);
+        const response = this.waitForSearchResponse();
         await this.searchButton.click();
-        await this.searchCompleted.waitFor();
+        await response;
+        await this.searchResultCount.waitFor();
+    }
+
+    /**
+     * Searches by pressing Enter in the search box instead of clicking the
+     * Search button, and waits until the results are shown.
+     *
+     * @param {string} term - The text to search for.
+     * @returns {Promise<void>} Resolves when the result count is rendered.
+     */
+    async searchWithEnter(term: string): Promise<void> {
+        await this.searchInput.fill(term);
+        const response = this.waitForSearchResponse();
+        await this.searchInput.press('Enter');
+        await response;
+        await this.searchResultCount.waitFor();
+    }
+
+    /**
+     * Clicks the "X" button to clear the search.
+     *
+     * @returns {Promise<void>} Resolves when the button has been clicked.
+     */
+    async resetSearch(): Promise<void> {
+        await this.resetButton.click();
+    }
+
+    private waitForSearchResponse(): Promise<unknown> {
+        return this.page.waitForResponse(
+            (response) =>
+                response.url().endsWith(ApiEndpoints.PRODUCTS_SEARCH) &&
+                response.request().method() === 'QUERY'
+        );
     }
 
     /**

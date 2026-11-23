@@ -4,7 +4,7 @@
   `AppRoutes.HOME`)
 - Auth: none. Search behaves the same signed out; explored signed out.
 - Explored: 2026-11-22 with playwright-cli, viewport 1920x1080
-- Status: Reviewed 2026-11-23; P1 implemented, P2 next
+- Status: Reviewed 2026-11-23; P1 and P2 implemented, P3 next
 - Part of: the E2E checkout journey (search → product → cart → checkout → invoice); this plan
   covers its first step.
 
@@ -91,27 +91,27 @@ re-queries a different endpoint with part-of-word matching.
 
 ## Scenarios
 
-| ID    | Priority | Tag           | User workflow                                                     | Visual check          | Status                  |
-| ----- | -------- | ------------- | ----------------------------------------------------------------- | --------------------- | ----------------------- |
-| PS-01 | P1       | `@smoke`      | Shopper searches by product name and sees only matching products  | none                  | implemented             |
-| PS-02 | P1       | `@smoke`      | Shopper opens a search result and lands on that product           | none                  | implemented (E2E entry) |
-| PS-03 | P2       | `@sanity`     | Shopper with no match sees a clear "nothing found" message        | none                  | planned                 |
-| PS-04 | P2       | `@sanity`     | Shopper resets the search and gets the full catalogue back        | none                  | planned                 |
-| PS-05 | P2       | `@sanity`     | Capitals and surrounding spaces find the same products            | none                  | planned                 |
-| PS-06 | P2       | `@sanity`     | Keyboard user searches with Enter                                 | none                  | planned                 |
-| PS-07 | P2       | `@sanity`     | Shopper opens a result, presses Back and still sees their results | none                  | known defect (Q1)       |
-| PS-16 | P2       | `@sanity`     | HTML typed into the search is shown as text, not executed         | none                  | planned                 |
-| PS-08 | P3       | `@regression` | Sorting search results keeps the same set of products             | none                  | known defect (Q2)       |
-| PS-09 | P3       | `@regression` | Search combined with a category filter narrows the results        | none                  | planned                 |
-| PS-10 | P3       | `@regression` | Sorting search results by price orders them low to high           | none                  | planned                 |
-| PS-11 | P3       | `@regression` | Part of a word finds the products that contain it                 | none                  | planned                 |
-| PS-12 | P4       | `@regression` | Search results respect the price range shown on screen            | none                  | blocked (Q3)            |
-| PS-14 | P4       | `@regression` | A search that is too short tells the user why nothing happened    | none                  | not automated (Q4)      |
-| PS-15 | P4       | `@regression` | An empty search does not leave stale results under an empty box   | none                  | not automated (Q4)      |
-| PS-17 | P4       | `@regression` | The search box keeps the term after searching, for refining       | none                  | not automated (Q4)      |
-| PS-18 | P4       | `@regression` | A search survives a reload                                        | none                  | not automated (Q4)      |
-| PS-19 | P5       | `@regression` | Search panel accessibility structure                              | `toMatchAriaSnapshot` | planned                 |
-| PS-20 | P5       | `@regression` | No-results state                                                  | `toHaveScreenshot`    | planned                 |
+| ID    | Priority | Tag           | User workflow                                                     | Visual check          | Status                         |
+| ----- | -------- | ------------- | ----------------------------------------------------------------- | --------------------- | ------------------------------ |
+| PS-01 | P1       | `@smoke`      | Shopper searches by product name and sees only matching products  | none                  | implemented                    |
+| PS-02 | P1       | `@smoke`      | Shopper opens a search result and lands on that product           | none                  | implemented (E2E entry)        |
+| PS-03 | P2       | `@sanity`     | Shopper with no match sees a clear "nothing found" message        | none                  | implemented                    |
+| PS-04 | P2       | `@sanity`     | Shopper resets the search and gets the full catalogue back        | none                  | implemented                    |
+| PS-05 | P2       | `@sanity`     | Capitals and surrounding spaces find the same products            | none                  | implemented                    |
+| PS-06 | P2       | `@sanity`     | Keyboard user searches with Enter                                 | none                  | implemented                    |
+| PS-07 | P2       | `@sanity`     | Shopper opens a result, presses Back and still sees their results | none                  | implemented, known defect (Q1) |
+| PS-16 | P2       | `@sanity`     | HTML typed into the search is shown as text, not executed         | none                  | implemented                    |
+| PS-08 | P3       | `@regression` | Sorting search results keeps the same set of products             | none                  | known defect (Q2)              |
+| PS-09 | P3       | `@regression` | Search combined with a category filter narrows the results        | none                  | planned                        |
+| PS-10 | P3       | `@regression` | Sorting search results by price orders them low to high           | none                  | planned                        |
+| PS-11 | P3       | `@regression` | Part of a word finds the products that contain it                 | none                  | planned                        |
+| PS-12 | P4       | `@regression` | Search results respect the price range shown on screen            | none                  | blocked (Q3)                   |
+| PS-14 | P4       | `@regression` | A search that is too short tells the user why nothing happened    | none                  | not automated (Q4)             |
+| PS-15 | P4       | `@regression` | An empty search does not leave stale results under an empty box   | none                  | not automated (Q4)             |
+| PS-17 | P4       | `@regression` | The search box keeps the term after searching, for refining       | none                  | not automated (Q4)             |
+| PS-18 | P4       | `@regression` | A search survives a reload                                        | none                  | not automated (Q4)             |
+| PS-19 | P5       | `@regression` | Search panel accessibility structure                              | `toMatchAriaSnapshot` | planned                        |
+| PS-20 | P5       | `@regression` | No-results state                                                  | `toHaveScreenshot`    | planned                        |
 
 All scenarios run signed out (`resetStorageState()` and opening `/` in `beforeEach`) and read
 only. None mutates shared state, so none is `@destructive`. The catalogue is reseeded with the

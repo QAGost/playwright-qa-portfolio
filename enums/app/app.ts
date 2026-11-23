@@ -19,6 +19,7 @@ export enum Messages {
     /** Heading above search results; the term follows the prefix */
     SEARCH_CAPTION_PREFIX = 'Searched for: ',
     /** Result count under the caption; `{count}` and `{term}` are filled in */
+    NO_PRODUCTS_FOUND = 'There are no products found.',
     SEARCH_RESULT_COUNT = "{count} products found for '{term}'",
 }
 
@@ -38,6 +39,7 @@ export enum ApiEndpoints {
     CURRENT_USER = '/users/me',
     REGISTER = '/users/register',
     USERS = '/users',
+    PRODUCTS_SEARCH = '/products/search',
 }
 
 /**

@@ -9,4 +9,6 @@ export const appConfig = {
     appUrl: process.env.APP_URL!,
     /** Backend API URL loaded from the API_URL env variable */
     apiUrl: process.env.API_URL!,
+    /** Products per page in the home page grid (verified live 2026-11-23) */
+    homeGridPageSize: 9,
 };
