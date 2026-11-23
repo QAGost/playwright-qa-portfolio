@@ -166,7 +166,8 @@ GitHub Actions runs on every push to `main`:
 
 The UI tests run locally only: according to the scaffold's CI notes, the public site's UI sits
 behind bot protection that challenges GitHub's runners. The planned fix is to run CI against a
-fresh copy of the app in Docker (it is open source), which also gives Linux screenshot baselines.
+fresh copy of the app in Docker (its licence allows running it for private, non-commercial use, so
+this needs checking first), which also gives Linux screenshot baselines.
 
 ## Project structure
 
@@ -203,5 +204,7 @@ history shows exactly what was added on top. The scaffold's own manual is kept i
 [`docs/SCAFFOLD.md`](docs/SCAFFOLD.md); third-party notices are in [`NOTICE.md`](NOTICE.md).
 
 The system under test, [practicesoftwaretesting.com](https://practicesoftwaretesting.com), is
-the open-source Toolshop demo by Testsmith
+the Toolshop demo by Testsmith, whose source is
+public under a non-commercial licence
 ([testsmith-io/practice-software-testing](https://github.com/testsmith-io/practice-software-testing)).
+None of its code is copied into this repository.
