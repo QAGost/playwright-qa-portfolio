@@ -80,8 +80,8 @@ Found while exploring and testing, each recorded with the evidence behind it:
 | `POST /users/login` documents only **200**; 401 and 423 happen live                                                                 | Contract gap     | Observed live                                                                         |
 | The register form requires house number and state; the API marks the address optional                                               | UI/API mismatch  | Observed live; candidate for a register plan                                          |
 
-None of these was reported in the app's public issue tracker when checked (2026-11-22). The
-lockout itself is by design (upstream issue #843).
+None of these has been filed upstream yet. The lockout itself is by design (upstream issue
+#843).
 
 ## Design decisions
 
