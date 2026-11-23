@@ -137,6 +137,15 @@ Needs a terminal (Git Bash; PowerShell users: use `curl.exe`). **Use a throwaway
 - Result 2026-11-23, run by Claude on a throwaway user: register 201, login 200, `/users/me` 200;
   wrong-password attempts 1 to 3 gave 401 and attempt **4** gave **423**; the correct password then
   also gave 423; `/users/me` with the old token still gave **200**. Reproduces.
+- Scope, tested 2026-11-23 on a throwaway user: after the lock the old token still gave 200 on
+  `GET /users/me`, `GET /invoices` (the order history), `PUT /users/<id>` (a profile change) and
+  `GET /favorites`. A request with no token gets 401. The token lives **300 seconds** (5
+  minutes; `expires_in` in the login response). Logging out works: `GET /users/logout` (200),
+  after which the same token gets 401. **Placing an order works too:** with the old token on the locked account, `POST /invoices` (cash on
+  delivery, one product) answered **201** and the order then showed in `GET /invoices`; the same
+  request without a token got 401, and the account itself stayed locked (login 423). The order
+  needs an address the shop's own `GET /postcode-lookup` returns (it rejects other city and
+  country combinations with 422), which the checkout plan has to build into its test data.
 - Note: the lock itself is by design (upstream issue #843); the open question is whether it
   should also end existing sessions.
 
