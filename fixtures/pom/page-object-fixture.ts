@@ -1,5 +1,7 @@
 import { test as base } from '@playwright/test';
 import { AppPage } from '../../pages/app/app.page';
+import { HomePage } from '../../pages/app/home.page';
+import { ProductPage } from '../../pages/app/product.page';
 
 /**
  * Framework fixtures for page objects.
@@ -8,6 +10,10 @@ import { AppPage } from '../../pages/app/app.page';
 export type FrameworkFixtures = {
     /** Main application page object */
     appPage: AppPage;
+    /** Home page: product search, sort, filters and the product grid */
+    homePage: HomePage;
+    /** Product detail page */
+    productPage: ProductPage;
     /** Clears cookies, permissions and the app's web storage so the test starts signed out */
     resetStorageState: () => Promise<void>;
 };
@@ -29,6 +35,14 @@ export type FrameworkFixtures = {
 export const test = base.extend<FrameworkFixtures>({
     appPage: async ({ page }, use) => {
         await use(new AppPage(page));
+    },
+
+    homePage: async ({ page }, use) => {
+        await use(new HomePage(page));
+    },
+
+    productPage: async ({ page }, use) => {
+        await use(new ProductPage(page));
     },
 
     resetStorageState: async ({ context, page }, use) => {

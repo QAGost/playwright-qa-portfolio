@@ -16,12 +16,19 @@ export enum Messages {
     EMAIL_REQUIRED = 'Email is required',
     PASSWORD_REQUIRED = 'Password is required',
     EMAIL_FORMAT_INVALID = 'Email format is invalid',
+    /** Heading above search results; the term follows the prefix */
+    SEARCH_CAPTION_PREFIX = 'Searched for: ',
+    /** Result count under the caption; `{count}` and `{term}` are filled in */
+    SEARCH_RESULT_COUNT = "{count} products found for '{term}'",
 }
 
 /** UI route paths */
 export enum AppRoutes {
     LOGIN = '/auth/login',
     ACCOUNT = '/account',
+    HOME = '/',
+    /** Product detail pages: `/product/<generated id>` */
+    PRODUCT = '/product',
 }
 
 /** API endpoint paths */
