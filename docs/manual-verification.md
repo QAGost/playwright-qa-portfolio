@@ -16,14 +16,14 @@ site deletes all users every hour).
 
 ## A. Likely defects (verify these first)
 
-| #   | Finding                                                     | Plan                     | Verified               | Severity |
-| --- | ----------------------------------------------------------- | ------------------------ | ---------------------- | -------- |
-| A1  | Double-click on Add to cart: badge says 2, cart holds 1     | product-page PP-06       | [x] you and Claude     | Medium   |
-| A2  | Double-click on Login sends two login requests              | login; docs/bug-reports/ | [x] you and Claude     | Low      |
-| A3  | Sorting search results changes which products are listed    | product-search PS-08     | [x] you, Network tab   | Low      |
-| A4  | Back from a product page loses the search                   | product-search PS-07     | [ ]                    | Low      |
-| A5  | Unknown product id shows a blank page (and a 500 behind it) | product-page PP-08       | [ ]                    | Low      |
-| A6  | A token issued before an account lock still works           | api-users API-18         | [x] Claude, 2026-11-23 | Medium   |
+| #   | Finding                                                     | Plan                             | Verified               | Severity |
+| --- | ----------------------------------------------------------- | -------------------------------- | ---------------------- | -------- |
+| A1  | Double-click on Add to cart: badge says 2, cart holds 1     | product-page PP-06; bug-reports/ | [x] you and Claude     | Medium   |
+| A2  | Double-click on Login sends two login requests              | login; docs/bug-reports/         | [x] you and Claude     | Low      |
+| A3  | Sorting search results changes which products are listed    | product-search PS-08             | [x] you, Network tab   | Low      |
+| A4  | Back from a product page loses the search                   | product-search PS-07             | [ ]                    | Low      |
+| A5  | Unknown product id shows a blank page (and a 500 behind it) | product-page PP-08               | [ ]                    | Low      |
+| A6  | A token issued before an account lock still works           | api-users API-18                 | [x] Claude, 2026-11-23 | Medium   |
 
 ### A1. Double-click on Add to cart: badge 2, cart holds 1
 

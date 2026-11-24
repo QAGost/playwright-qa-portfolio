@@ -203,6 +203,7 @@ favourites; they mutate only the run user's own data, so they are `@regression`,
 - Steps: GIVEN a fresh tab with an empty cart; WHEN the shopper double-clicks "Add to cart";
   THEN the cart count equals the quantity of the line on `/checkout`.
 - Observed: badge 2, `/checkout` quantity 1, total $14.15; two carts were created.
+- Bug report (draft): [`docs/bug-reports/cart-double-click.md`](../docs/bug-reports/cart-double-click.md).
 - If confirmed: written with the correct expectation and marked `test.fail()` with a `// BUG:`
   line, and a bug report is drafted alongside the login double-click report.
 
