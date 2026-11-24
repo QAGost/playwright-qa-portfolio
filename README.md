@@ -31,13 +31,13 @@ What this repository is meant to show:
 
 ## At a glance
 
-| Layer                     | What it answers                                       | Status                                                                                   | Where                                                                               |
-| ------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| **API**                   | Does the backend honour its contract?                 | Users API P1 done: register, login, `/users/me`, self-delete forbidden. P2 to P4 planned | [`tests/app/api/`](tests/app/api/), plan [`api-users.md`](plans/api-users.md)       |
-| **Functional UI**         | Does one feature work for a real user?                | Login P1 and P2 done. P3 to P5 planned                                                   | [`tests/app/functional/`](tests/app/functional/), plan [`login.md`](plans/login.md) |
-| **Visual and structural** | Does it still look right, and is everything labelled? | Planned: accessibility snapshot and pixel checks of the login form                       | inside the functional specs                                                         |
-| **E2E**                   | Does a whole journey work across pages?               | Planned: search → cart → checkout → invoice                                              | [`tests/app/e2e/`](tests/app/e2e/)                                                  |
-| **Performance**           | Is it fast enough under load?                         | Planned as a separate k6 repository                                                      | n/a                                                                                 |
+| Layer                     | What it answers                                       | Status                                                                                                        | Where                                                                               |
+| ------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **API**                   | Does the backend honour its contract?                 | Users API P1 done: register, login, `/users/me`, self-delete forbidden. P2 to P4 planned                      | [`tests/app/api/`](tests/app/api/), plan [`api-users.md`](plans/api-users.md)       |
+| **Functional UI**         | Does one feature work for a real user?                | Login P1 and P2 done. P3 to P5 planned                                                                        | [`tests/app/functional/`](tests/app/functional/), plan [`login.md`](plans/login.md) |
+| **Visual and structural** | Does it still look right, and is everything labelled? | Planned: accessibility snapshot and pixel checks of the login form                                            | inside the functional specs                                                         |
+| **E2E**                   | Does a whole journey work across pages?               | Planned: search → cart → checkout → invoice                                                                   | [`tests/app/e2e/`](tests/app/e2e/)                                                  |
+| **Performance**           | Is it fast enough under load?                         | [k6-toolshop-load](https://github.com/QAGost/k6-toolshop-load): smoke and gentle browse load, with thresholds | n/a                                                                                 |
 
 The full suite (API and UI) runs green locally. CI runs the static checks and the API tests on
 every push (see [CI](#ci)).
@@ -207,7 +207,7 @@ enums/, config/           routes, endpoints, messages, settings
 3. More checkout scenarios: quantity change, guest sign-in, other payment methods (plans/checkout.md).
 4. CI against a Dockerised copy of the app, with the UI tests included.
 5. File the findings upstream.
-6. Performance tests with k6, in a separate repository.
+6. k6: a write journey and CI, against a private copy of the app (the first k6 tests are in [their own repository](https://github.com/QAGost/k6-toolshop-load)).
 
 ## Credits and licence
 
