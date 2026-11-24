@@ -31,6 +31,7 @@ An input with an associated label is located with `getByLabel('Email')`. It read
 ## Exact and scoped matches
 
 - Text that could match more than one element: `{ exact: true }`, or a more specific role.
+- No `.first()`, `.last()` or `.nth()` (lint rule `playwright/no-nth-methods`). To read a list use `allInnerTexts()` or assert on all of it (`toHaveText([...])`, `toHaveCount(n)`); to assert "at least one" use `expect(locator).not.toHaveCount(0)`; to pick one item, filter by its name or a child (`filter({ has: ... })`).
 - Several similar elements under one container: scope the search, `page.getByRole('form', { name: 'Login' }).getByRole('button', { name: 'Save' })`.
 
 ## CSS exception

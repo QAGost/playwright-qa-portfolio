@@ -49,5 +49,5 @@ description: Use when creating or extending a data factory, adding a static set 
 
 ## References
 
-- `references/factories.md`: open when creating or extending a factory, pinning fields with overrides, or when `Schema.parse` throws inside one.
+- `references/factories.md`: open when creating or extending a factory, pinning fields with overrides, when `Schema.parse` throws inside one, or when the site resets its own data.
 - `references/static-data-tiers.md`: open when adding a static set: the three tiers, the two file shapes, promotion from inline, collisions between parallel tests.

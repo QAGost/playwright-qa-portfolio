@@ -43,3 +43,10 @@ Pin only the fields the test asserts on; everything else stays random.
 ## When `Schema.parse` throws inside the factory
 
 The Faker defaults no longer satisfy the schema: a new required field, a changed format, a range. Fix the defaults. Never loosen the schema; it is the contract (`type-safety`).
+
+## Own data on a site that resets itself
+
+The demo site wipes all user data every hour. A test's **own** data (an account or order it created)
+then needs no revert in `afterEach`; shared state (settings, roles, locale) still does
+(`test-standards`). Never rely on data surviving longer than one run: the run user is registered or
+reused by the setup project, and a `401` mid-run usually means the wipe removed it.

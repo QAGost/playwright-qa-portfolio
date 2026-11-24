@@ -25,20 +25,12 @@ Write the tests for the **<priority>** scenarios of that plan, run them, and fix
 
 ## Conventions
 
-This repo's Constitution (`AGENTS.md`) applies in full. Load the leaf skills in this order, as
-they are needed: `test-standards`, `page-objects`, `selectors`, `fixtures`, `enums`,
-`data-strategy`, `config`. In particular:
+This repo's Constitution (`AGENTS.md`) applies in full; the skills hold the rules, so load them as
+they are needed instead of restating them here: `test-standards`, `page-objects`, `selectors`,
+`fixtures`, `enums`, `data-strategy`, `config`. What is specific to this command:
 
-- `test` and `expect` come from `fixtures/pom/test-options.ts`; page objects are fixtures,
-  never `new PageObject(page)` in a spec.
-- Locators live in the page object under `pages/app/`, chosen by the `selectors` priority.
-  Specs hold no raw locators.
-- Routes and messages come from `enums/app/`; URLs and credentials from `process.env.*`;
-  test-created content from factories in `test-data/factories/app/`; curated invalid sets from
-  `test-data/static/`.
-- `test.step()` with GIVEN / WHEN / THEN; exactly one tag per test, taken from the plan; a
-  test that mutates persistent state reverts it in `afterEach` or `afterAll`.
-- No `waitForTimeout`, no XPath, no `any`, no magic numbers (constants go in `config/`).
+- The tag of each test comes from the plan, and the test steps are GIVEN / WHEN / THEN.
+- Locators, routes, messages and content values follow the skills; a spec holds no raw locator.
 - Specs go in `tests/app/functional/<name>.spec.ts` (or `tests/app/e2e/` for a multi-page
   journey). If the file exists, add to it; do not rewrite tests of other priorities.
 

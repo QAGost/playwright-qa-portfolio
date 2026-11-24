@@ -43,4 +43,5 @@ description: Use when writing or updating an API spec under tests/**/api/**, pla
 - `references/coverage-matrix.md`: the status-code rows every endpoint × method needs, the describe structure, the token conventions.
 - `references/negative-testing.md`: the per-field invalid-type, omission, path-parameter and query-parameter loops, and a contract mismatch kept in `test.skip`.
 - `references/multi-call-steps.md`: the create → read `test.step()` pattern with cleanup.
+- `references/ui-api-crosscheck.md`: a UI test that compares the page with the same record read through the API.
 - `references/helper-fixtures.md`: the setup → `use()` → teardown pattern for promoted API setup.

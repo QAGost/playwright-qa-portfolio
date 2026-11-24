@@ -2,6 +2,7 @@
 
 ## Claude Code only
 
+- Commands in `.claude/commands/` (Claude Code only): `/page <name>` writes a plan, `/codetest <name> <priority>` implements one priority of it, `/issue <finding>` drafts a bug report from a verified finding. Each stops at a human gate.
 - `.claude/skills/` is the canonical skill tree; every other skill tree is generated from it. Edit a skill here only.
 - `.claude/settings.json` wires the hooks. **PreToolUse `enforce_constitution.py`** (Write, Edit, MultiEdit) blocks a mechanical Constitution violation before the file is written and names the rule; fix the content, never the hook.
 - Status line: `.claude/settings.local.json` runs `python3 .claude/scripts/status_line.py` (per user; docs/SCAFFOLD.md "Claude Code Custom Status Line").

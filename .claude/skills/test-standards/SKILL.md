@@ -30,6 +30,7 @@ description: Use when creating or editing a spec file under tests/**, choosing a
 
 - Tests **must be independent**: no ordering, no shared mutable state. Setup goes in `test.beforeEach()` or a fixture.
 - Never commit explore-only or debug specs (`console.log(await page.content())`, probes).
+- A confirmed defect that the plan records is `test.fail()` plus a `// BUG:` line, never `test.skip` (`references/known-defects.md`).
 - After adding or modifying a spec, run `npx playwright test <file>` and **confirm zero failures** before reporting done.
 
 ## Procedure
@@ -46,4 +47,5 @@ description: Use when creating or editing a spec file under tests/**, choosing a
 
 - `references/spec-patterns.md`: skeletons for a functional, data-driven, E2E and setup spec.
 - `references/tags.md`: what each tag covers, how each suite runs, the three tagging mistakes.
+- `references/known-defects.md`: `test.fail()` for a recorded defect versus `test.skip` for a contract mismatch.
 - `references/destructive-tests.md`: the shared-state definition, the cleanup pattern, the destructive suite, suite-only failures.

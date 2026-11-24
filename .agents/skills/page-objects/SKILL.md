@@ -25,7 +25,7 @@ description: Use when creating a page object or component under pages/**, adding
 
 - A page object for a form or CRUD screen has three groups: interactive locators, feedback locators (success, error, field validation), action methods. Feedback locators are not optional; `selectors` lists what to capture.
 - Strings inside `getByText(...)` come from `enums/{area}/*` (`Messages.LOGIN_ERROR`), never literals.
-- Action methods do not assert; a verification method named `xxxAndVerify()` may call `expect`. Waits are `page.waitForResponse(...)` or web-first assertions, never `page.waitForTimeout(...)`.
+- Action methods do not assert; a verification method named `xxxAndVerify()` may call `expect`. Waits are `page.waitForResponse(...)` or web-first assertions, never `page.waitForTimeout(...)`. An action returns when the next step can proceed (`references/waiting.md`).
 - A fragment shared by several pages (header, modal, sidebar) is a component in `pages/components/`, held as `readonly nav: NavigationComponent` and created in the constructor.
 - Every new page object is registered in `fixtures/pom/page-object-fixture.ts`; tests receive it from the fixture (`fixtures`).
 
@@ -42,4 +42,5 @@ description: Use when creating a page object or component under pages/**, adding
 ## References
 
 - `references/class-pattern.md`: the full class with the three groups, one action method and one verification method.
+- `references/waiting.md`: what an action waits for, and why an app marker that persists is not evidence.
 - `references/components.md`: a component, its composition into a page, when to split a large page object.

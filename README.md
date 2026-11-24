@@ -34,9 +34,9 @@ What this repository is meant to show:
 | Layer                     | What it answers                                       | Status                                                                                                        | Where                                                                               |
 | ------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | **API**                   | Does the backend honour its contract?                 | Users API P1 done: register, login, `/users/me`, self-delete forbidden. P2 to P4 planned                      | [`tests/app/api/`](tests/app/api/), plan [`api-users.md`](plans/api-users.md)       |
-| **Functional UI**         | Does one feature work for a real user?                | Login P1 and P2 done. P3 to P5 planned                                                                        | [`tests/app/functional/`](tests/app/functional/), plan [`login.md`](plans/login.md) |
+| **Functional UI**         | Does one feature work for a real user?                | Login, product search and product page: P1 and P2 done (two known-defect tests). P3 to P5 planned             | [`tests/app/functional/`](tests/app/functional/), plan [`login.md`](plans/login.md) |
 | **Visual and structural** | Does it still look right, and is everything labelled? | Planned: accessibility snapshot and pixel checks of the login form                                            | inside the functional specs                                                         |
-| **E2E**                   | Does a whole journey work across pages?               | Planned: search → cart → checkout → invoice                                                                   | [`tests/app/e2e/`](tests/app/e2e/)                                                  |
+| **E2E**                   | Does a whole journey work across pages?               | Done: search → product → cart → checkout → invoice (checkout plan: [`checkout.md`](plans/checkout.md))        | [`tests/app/e2e/`](tests/app/e2e/)                                                  |
 | **Performance**           | Is it fast enough under load?                         | [k6-toolshop-load](https://github.com/QAGost/k6-toolshop-load): smoke and gentle browse load, with thresholds | n/a                                                                                 |
 
 The full suite (API and UI) runs green locally. CI runs the static checks and the API tests on
@@ -117,7 +117,7 @@ None of these has been filed upstream yet. The lockout itself is by design (upst
 
 Development used an AI coding assistant (Claude Code) inside guard-rails that come with the
 scaffold: a written constitution, rule files per topic, and a hook that blocks rule violations
-before a file is written. On top of that I added two commands
+before a file is written. On top of that I added three commands
 ([`.claude/commands/`](.claude/commands/)):
 
 1. **`/page <name>`** explores a page on the live site, starting from its users, and writes a
@@ -125,6 +125,12 @@ before a file is written. On top of that I added two commands
 2. **`/codetest <name> <priority>`** implements one priority of a reviewed plan, runs the same
    checks as CI, runs the tests and fixes failures for at most three attempts, without ever
    weakening a test.
+3. **`/issue <finding>`** turns one finding that I verified by hand into a bug-report draft in
+   [`docs/bug-reports/`](docs/bug-reports/), after a read-only search for duplicates upstream. It files
+   nothing: that stays my action.
+
+The loop is plan, then tests, then bug report, with a human gate between each step. A written
+[audit of the skills and commands](docs/skills-audit.md) records what was checked and what changed.
 
 The decisions were mine: what to test and in which order, which findings are defects, when a
 contract is out of date, how to handle test users on a public site. AI answers were treated as
