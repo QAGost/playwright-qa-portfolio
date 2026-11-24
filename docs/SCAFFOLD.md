@@ -620,7 +620,7 @@ root/
 │       ├── api/               # API tests
 │       │   └── login.spec.ts
 │       ├── e2e/               # End-to-end tests
-│       │   └── e2e.spec.ts
+│       │   └── checkout.spec.ts
 │       └── functional/        # Functional tests
 │           └── login.spec.ts
 │

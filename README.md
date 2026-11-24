@@ -6,9 +6,15 @@
 By **Goran Ost**: 20 years in QA, the last three as Principal QA, looking for a Senior or
 Principal QA role.
 
-**Start here:** the [login test plan](plans/login.md) (test design), the
-[login tests](tests/app/functional/login.spec.ts) (P1 and P2) and the
-[double-click bug report](docs/bug-reports/login-double-click.md) (a finding with evidence).
+**Start here:**
+
+- **Test design:** the [checkout plan](plans/checkout.md) or the [login plan](plans/login.md): users,
+  workflows and scenarios ranked by impact.
+- **A whole journey:** the [checkout E2E test](tests/app/e2e/checkout.spec.ts) (search, cart, payment,
+  invoice).
+- **A finding with evidence:** the [cart double-click bug report](docs/bug-reports/cart-double-click.md),
+  and the [test that tracks it](tests/app/functional/product-page.spec.ts) (PP-06).
+- **Performance:** the separate [k6 repository](https://github.com/QAGost/k6-toolshop-load).
 
 A risk-based test suite in **Playwright and TypeScript** for
 [practicesoftwaretesting.com](https://practicesoftwaretesting.com), a public demo web shop built
@@ -24,7 +30,7 @@ What this repository is meant to show:
   document; gaps between the contract and live behaviour are recorded, not papered over.
 - **Findings, not just green ticks.** Defects and contract gaps found while testing, with an
   evidence-based bug report ([`docs/bug-reports/`](docs/bug-reports/)).
-- **Tests nobody can break from outside.** The suite registers its own test user, so there are
+- **Tests that cannot lock themselves out.** The suite registers its own test user, so there are
   no stored credentials and no shared account to lock.
 - **AI-assisted, human-decided.** Built with an AI coding assistant under strict rules; every plan
   was reviewed and every trade-off decided by me (see [How this was built](#how-this-was-built)).
@@ -71,24 +77,24 @@ mocking.
 
 Found while exploring and testing, each recorded with the evidence behind it:
 
-| Finding                                                                                                                             | Type             | Severity | Evidence and status                                                                                     |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ---------------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| Double-clicking **Add to cart** shows 2 in the header but the cart holds 1 (two carts are created)                                  | Defect           | Medium   | Reproduced by hand and 4 of 4 times in tests; known-defect test planned ([plan](plans/product-page.md)) |
-| Locking an account does **not** end its existing sessions: a token issued before the lock still works                               | Security finding | Medium   | Reproduced 2026-11-23 on a throwaway user ([plan](plans/api-users.md)); report to be written            |
-| A double-click on Login sends **two** login requests; with the 3-attempt lockout, one double-click with a typo may use two attempts | Defect           | Low      | [Bug report](docs/bug-reports/login-double-click.md), reproduced by hand; not yet filed upstream        |
-| Sorting search results changes which products match ("hammer": 6 becomes 7); search and sort use two different API endpoints        | Defect           | Low      | Reproduced by hand in the Network tab; known-defect test in the suite                                   |
-| Back from a product page loses the search; the address never changes                                                                | UX defect        | Low      | Known-defect test in the suite ([plan](plans/product-search.md))                                        |
-| An unknown or outdated product id shows a blank page, and the related-products call returns 500                                     | Defect           | Low      | Observed live ([plan](plans/product-page.md))                                                           |
-| After being sent to login from an account page, users land on `/account`, not where they were                                       | UX gap           | Low      | Observed live ([plan](plans/login.md))                                                                  |
-| Validation errors return **422**; the OpenAPI contract documents **400**                                                            | Contract gap     | Low      | Observed live; tests follow the live behaviour with an `// OBSERVED` note                               |
-| `POST /users/login` documents only **200**; 401 and 423 happen live                                                                 | Contract gap     | Low      | Observed live                                                                                           |
-| The register form requires house number and state; the API marks the address optional                                               | UI/API mismatch  | Low      | Observed live; candidate for a register plan                                                            |
+| Finding                                                                                                                             | Type               | Severity | Evidence and status                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Double-clicking **Add to cart** shows 2 in the header but the cart holds 1 (two carts are created)                                  | Defect             | Medium   | [Bug report](docs/bug-reports/cart-double-click.md), reproduced by hand and 4 of 4 times; known-defect test PP-06 in the suite |
+| Locking an account does **not** end its existing sessions: a token issued before the lock still works                               | Security finding   | Medium   | Reproduced 2026-11-23 on a throwaway user ([plan](plans/api-users.md)); report not yet drafted                                 |
+| A double-click on Login sends **two** login requests; with the 3-attempt lockout, one double-click with a typo may use two attempts | Defect             | Low      | [Bug report](docs/bug-reports/login-double-click.md), reproduced by hand; not yet filed upstream                               |
+| Sorting search results changes which products match ("hammer": 6 becomes 7); search and sort use two different API endpoints        | Defect             | Low      | Reproduced by hand in the Network tab; known-defect test planned (PS-08, [plan](plans/product-search.md))                      |
+| Back from a product page loses the search; the address never changes                                                                | UX defect          | Low      | Known-defect test in the suite ([plan](plans/product-search.md))                                                               |
+| An unknown or outdated product id shows a blank page, and the related-products call returns 500                                     | Defect (edge case) | Low      | Observed live; not automated, a shopper only reaches it through a stale link ([plan](plans/product-page.md))                   |
+| After being sent to login from an account page, users land on `/account`, not where they were                                       | UX gap             | Low      | Observed live ([plan](plans/login.md))                                                                                         |
+| Validation errors return **422**; the OpenAPI contract documents **400**                                                            | Contract gap       | Low      | Observed live; tests follow the live behaviour with an `// OBSERVED` note                                                      |
+| `POST /users/login` documents only **200**; 401 and 423 happen live                                                                 | Contract gap       | Low      | Observed live                                                                                                                  |
+| The register form requires house number and state; the API marks the address optional                                               | UI/API mismatch    | Low      | Observed live; candidate for a register plan                                                                                   |
 
 Severity is my estimate of the impact if this were a live shop. Every finding is checked by hand
 ([checklist](docs/manual-verification.md)) before it is called a defect.
 
-None of these has been filed upstream yet. The lockout itself is by design (upstream issue
-#843).
+None of these has been filed upstream yet; two bug reports are drafted for me to file. The lockout
+itself is by design (upstream issue #843).
 
 ## Design decisions
 
@@ -153,6 +159,7 @@ No account or password is needed: the first run registers a test user automatica
 | --------------------- | -------------------------------------------------------------------- |
 | `npm run test:api`    | API tests only (no browser)                                          |
 | `npm run test:smoke`  | P1 UI tests                                                          |
+| `npm run test:e2e`    | E2E tests (the checkout journey)                                     |
 | `npm run test:headed` | UI tests with a visible browser                                      |
 | `npm run report`      | Opens the last HTML report                                           |
 | `npm run lint`        | ESLint; CI also runs `npx prettier --check .` and `npx tsc --noEmit` |
@@ -194,7 +201,7 @@ this needs checking first), which also gives Linux screenshot baselines.
 
 ```
 plans/                    test plans: users, workflows, ranked scenarios, findings
-docs/bug-reports/         evidence-based bug reports
+docs/bug-reports/         evidence-based bug reports; docs/manual-verification.md lists each finding with steps
 tests/app/api/            API tests (*.creates-accounts.spec.ts register users)
 tests/app/functional/     functional UI tests
 tests/app/e2e/            end-to-end journeys
@@ -203,17 +210,17 @@ pages/                    page objects and components
 fixtures/                 Playwright fixtures and Zod schemas (fixtures/api/schemas/)
 test-data/                Faker factories and curated invalid values
 enums/, config/           routes, endpoints, messages, settings
-.claude/                  AI rules, skills and the /page and /codetest commands
+.claude/                  AI rules, skills and the /page, /codetest and /issue commands
 ```
 
 ## Roadmap
 
 1. Users API P2: duplicate email, missing or invalid token, logout ends the token, lockout.
-2. Login P3 to P5, including the accessibility snapshot and the known-defect tests.
-3. More checkout scenarios: quantity change, guest sign-in, other payment methods (plans/checkout.md).
+2. Product search P3 to P5 and login P3 to P5, including the accessibility snapshots.
+3. More checkout scenarios: quantity change, guest sign-in, other payment methods ([plan](plans/checkout.md)).
 4. CI against a Dockerised copy of the app, with the UI tests included.
-5. File the findings upstream.
-6. k6: a write journey and CI, against a private copy of the app (the first k6 tests are in [their own repository](https://github.com/QAGost/k6-toolshop-load)).
+5. File the drafted bug reports upstream and draft the token finding.
+6. k6: a write journey and CI, against a private copy of the app ([k6 repository](https://github.com/QAGost/k6-toolshop-load)).
 
 ## Credits and licence
 

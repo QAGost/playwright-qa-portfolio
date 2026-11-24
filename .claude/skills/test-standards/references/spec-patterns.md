@@ -1,6 +1,6 @@
 # Spec patterns
 
-Paths assume `tests/{area}/<type>/`; run `ls tests/` for the real area. The live instances are `tests/app/functional/login.spec.ts`, `tests/app/e2e/e2e.spec.ts`, `tests/app/auth.setup.ts` and `tests/app/auth-api.setup.ts`. API specs follow `api-testing`.
+Paths assume `tests/{area}/<type>/`; run `ls tests/` for the real area. The live instances are `tests/app/functional/login.spec.ts`, `tests/app/e2e/checkout.spec.ts`, `tests/app/auth.setup.ts` and `tests/app/auth-api.setup.ts`. API specs follow `api-testing`.
 
 ## Functional
 
