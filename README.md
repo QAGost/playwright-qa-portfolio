@@ -123,7 +123,7 @@ itself is by design (upstream issue #843).
 
 Development used an AI coding assistant (Claude Code) inside guard-rails that come with the
 scaffold: a written constitution, rule files per topic, and a hook that blocks rule violations
-before a file is written. On top of that I added three commands
+before a file is written. On top of that I added four commands
 ([`.claude/commands/`](.claude/commands/)):
 
 1. **`/page <name>`** explores a page on the live site, starting from its users, and writes a
@@ -134,9 +134,22 @@ before a file is written. On top of that I added three commands
 3. **`/issue <finding>`** turns one finding that I verified by hand into a bug-report draft in
    [`docs/bug-reports/`](docs/bug-reports/), after a read-only search for duplicates upstream. It files
    nothing: that stays my action.
+4. **`/heal <test>`** reproduces a failing test, checks the live app, classifies the cause (test defect,
+   value drift, contract drift, app defect or environment) and proposes a fix as a diff. It applies
+   nothing until I approve, and an app defect never gets a test edited to match the bug.
 
-The loop is plan, then tests, then bug report, with a human gate between each step. A written
-[audit of the skills and commands](docs/skills-audit.md) records what was checked and what changed.
+### The loop: a model proposes, fixed rules validate, a person approves
+
+| Stage    | Who or what                                                                                    | Examples in this repository                                                                    |
+| -------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Propose  | The model, from evidence it gathered on the live site                                          | `/page` writes a plan, `/codetest` writes tests, `/heal` proposes a fix, `/issue` a report     |
+| Validate | Rules that do not depend on the model: a hook, ESLint, `tsc`, Prettier, skill gates, the tests | A write that breaks a constitution rule is blocked and names the rule; CI runs the same checks |
+| Approve  | Me, at a gate between every step                                                               | I review the plan before tests, approve a diff before it is applied, file reports myself       |
+
+What this is: a working workflow built from Claude Code commands and checks in this repository. What it
+is not: a standalone tool for other teams. `/heal` has so far been exercised on one simulated failure (a
+mistyped message); it has not yet been used on a real regression. The audit of the skills behind the loop
+is in [`docs/skills-audit.md`](docs/skills-audit.md).
 
 The decisions were mine: what to test and in which order, which findings are defects, when a
 contract is out of date, how to handle test users on a public site. AI answers were treated as
@@ -210,7 +223,7 @@ pages/                    page objects and components
 fixtures/                 Playwright fixtures and Zod schemas (fixtures/api/schemas/)
 test-data/                Faker factories and curated invalid values
 enums/, config/           routes, endpoints, messages, settings
-.claude/                  AI rules, skills and the /page, /codetest and /issue commands
+.claude/                  AI rules, skills and the /page, /codetest, /issue and /heal commands
 ```
 
 ## Roadmap
