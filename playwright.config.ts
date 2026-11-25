@@ -35,9 +35,11 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
 
     /* Reporter configuration */
-    reporter: process.env.CI
-        ? [['blob'], ['html', { open: 'never' }]]
-        : [['html', { open: 'on-failure' }]],
+    reporter: [
+        ['html', { open: 'never' }],
+        ['junit', { outputFile: 'results/junit.xml' }],
+        ['list'],
+    ],
 
     /* Shared settings for all projects */
     use: {
