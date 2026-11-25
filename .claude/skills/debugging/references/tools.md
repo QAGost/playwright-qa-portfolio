@@ -40,6 +40,13 @@ npx playwright trace close
 
 Same data as the GUI viewer, addressable from a terminal.
 
+### Agent reading order
+
+1. Terminal output, then `test-results/<test>/error-context.md` (the page snapshot at the failure) and `test-failed-*.png`. Most locator and text failures end here.
+2. Open `test-results/<test>/trace.zip` when those do not explain the failure, or when it looks like timing, navigation or the network: something happened before the failing step that the snapshot cannot show.
+3. Read the failing action only: `trace actions` to find its number, `trace snapshot <n> --name before`, then `trace requests`, `trace console` or `trace errors` as the symptom needs. Never dump the whole trace.
+4. Quote the trace line that supports the diagnosis in the fix proposal or report.
+
 ## CLI debugger
 
 `npx playwright test <file> --debug=cli` pauses and prints a `playwright-cli attach <session-id>` instruction; drive it with `playwright-cli --session=<id> step-over` and `playwright-cli --session=<id> snapshot` (the `playwright-cli` skill covers the executable). `npm run test:debug` keeps the GUI Inspector.
@@ -54,6 +61,6 @@ Everything captured, one worker, no retry, visible browser.
 
 ## Pitfalls
 
-- **No trace after a failure.** Local `retries: 0` means `on-first-retry` never fires; add `--trace on` or use UI Mode.
+- **No trace after a failure.** Local `retries: 0` means `on-first-retry` never fires; add `--trace retain-on-failure` (a trace of the failed attempt only) or use UI Mode.
 - **Stale report.** `npm run report` shows the last run; re-run the failing test first.
 - **Other browsers.** Only `chromium` is active; the `firefox` and `webkit` project blocks in `playwright.config.ts` are commented out. Enable one for the investigation (`--project=firefox`), then comment it out again; enabling it in CI is a team decision.

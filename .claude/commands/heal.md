@@ -18,11 +18,16 @@ bypass a validator or the approval.
 
 ## Procedure
 
-1. **Reproduce.** `npx playwright test <file> --reporter=list --workers=1 --retries=0` (add `--grep` for
-   one title). Never propose a fix for a failure you could not reproduce; if it passes on a re-run, say
-   it is flaky and go to `debugging` (5 green runs, never a timeout bump).
+1. **Reproduce.** `npx playwright test <file> --reporter=list --workers=1 --retries=0 --trace retain-on-failure`
+   (add `--grep` for one title). The trace flag keeps a trace of the failed attempt itself. Never propose
+   a fix for a failure you could not reproduce; if it passes on a re-run, say it is flaky and go to
+   `debugging` (5 green runs, never a timeout bump).
 2. **Read the evidence** in the order of the `debugging` skill: the terminal output (test, failed call,
-   expected versus received, line), `test-results/<test>/error-context.md`, the failure screenshot.
+   expected versus received, line), `test-results/<test>/error-context.md`, the failure screenshot, then
+   `test-results/<test>/trace.zip` with the trace inspector (`debugging`, `references/tools.md`) when
+   those do not explain it or the failure looks like timing, navigation or the network. Read the failing
+   action only (`trace actions`, `trace snapshot <n> --name before`, `trace requests`, `trace errors`),
+   never the whole trace.
 3. **Check the live app** before blaming the test: re-explore the one element or message with
    `playwright-cli` (read `.claude/skills/playwright-cli/references/scaffold-usage.md` first); for an API
    test, call the endpoint. If the site or API is down (5xx, timeouts), wait and re-run; that is
@@ -37,11 +42,12 @@ bypass a validator or the approval.
     | App defect     | The app is wrong and the test is right              | **No test change.** Draft the plan row and name `/issue`                                             |
     | Environment    | Outage, hourly data wipe, expired token, load       | No code change; say how to re-run                                                                    |
 
-5. **Propose.** Show the evidence (the failing line and the live check), the class and why, then the
+5. **Propose.** Show the evidence (the failing line, the trace line that backs the diagnosis when the
+   trace was read, and the live check), the class and why, then the
    unified diff of every file the fix touches, and the commands that will validate it. Stop and ask me to
    reply "apply".
 6. **On "apply":** apply exactly that diff, then run `npm run lint`, `npx tsc --noEmit`,
-   `npx prettier --check .` and the test file with `--workers=1 --retries=0`. For a fix to a test that
+   `npx prettier --check .` and the test file with `--workers=1 --retries=0 --trace retain-on-failure`. For a fix to a test that
    asserts something, show it still fails when it should (change one expected value once, see red,
    restore). Maximum **3** attempts, then stop and report.
 7. **Report:** class, files changed, validator results, and anything left (for an app defect, the draft

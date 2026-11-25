@@ -76,14 +76,20 @@ changed.
    ESLint does not; plans and docs fail CI too). Fix formatting with
    `npx prettier --write <file>`, then re-check: a file that still fails after `--write` has a
    structural Markdown problem (for example invalid list numbering) to fix by hand.
-2. Run: `npx playwright test tests/app/functional/<name>.spec.ts --reporter=list --workers=1 --retries=0`.
-   Always pass `--reporter=list`: the config's default HTML reporter opens a browser on
-   failure and blocks the run.
+2. Run: `npx playwright test tests/app/functional/<name>.spec.ts --reporter=list --workers=1 --retries=0 --trace retain-on-failure`.
+   Always pass `--reporter=list` (terminal output only; the config's HTML and JUnit reporters
+   are for CI) and `--trace retain-on-failure` (a trace of the first failed attempt; passing
+   tests keep none). Use the same flags on every re-run.
 3. If anything is red, load the `debugging` skill and read, in this order: the terminal
    output (test, failed call, expected versus received, line), then
    `test-results/<test>/error-context.md`, the failure screenshot (`test-failed-*.png`), and for
-   a visual failure the `-actual`, `-expected` and `-diff` PNGs. Classify with the `debugging`
-   table and fix the root cause in the file it names (usually the page object or the data).
+   a visual failure the `-actual`, `-expected` and `-diff` PNGs. Open
+   `test-results/<test>/trace.zip` with the trace inspector (`debugging`,
+   `references/tools.md`) when those do not explain the failure, or when it looks like timing,
+   navigation or the network: read `trace actions`, then `trace snapshot <n> --name before` for
+   the failing action, `trace requests` and `trace errors`; never dump the whole trace. Classify
+   with the `debugging` table and fix the root cause in the file it names (usually the page
+   object or the data).
 4. Re-run lint and the spec. That is **one fix attempt**. The first run in step 2 is not an
    attempt.
 5. Stop when the spec is green, or after **3 fix attempts**, whichever comes first.
@@ -122,7 +128,8 @@ Stop and report:
 
 - the scenarios implemented (ID, title, tag) and the files created or changed;
 - lint status and the final test result per test (pass or fail);
-- for each fix attempt: the failure, the cause found, the change made;
+- for each fix attempt: the failure, the cause found (quote the trace line that shows it when
+  the trace was read), the change made;
 - for anything still red after 3 attempts: the last error, the evidence paths, and your best
   diagnosis (test defect, app defect or unknown);
 - baselines created, with paths, and the OS-specific note;
