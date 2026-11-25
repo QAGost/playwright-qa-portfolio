@@ -68,7 +68,8 @@
         "*.{ts,tsx,js,jsx}": [
             "npx eslint --fix --max-warnings 0 --no-warn-ignored",
             "npx prettier --write"
-        ]
+        ],
+        "*.{md,yml,yaml,json}": "npx prettier --write --ignore-unknown"
     },
     "engines": {
         "node": ">=22"
