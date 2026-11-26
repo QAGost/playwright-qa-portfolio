@@ -2,6 +2,8 @@
 
 [![Lint](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/lint.yml/badge.svg)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/lint.yml)
 [![Playwright Tests (API)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/playwright.yml/badge.svg)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/playwright.yml)
+[![Security](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/security.yml/badge.svg)](https://github.com/QAGost/playwright-qa-portfolio/actions/workflows/security.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/QAGost/playwright-qa-portfolio/badge)](https://scorecard.dev/viewer/?uri=github.com/QAGost/playwright-qa-portfolio)
 
 By **Goran Ost**: 20 years in QA, the last three as Principal QA, looking for a Senior or
 Principal QA role.

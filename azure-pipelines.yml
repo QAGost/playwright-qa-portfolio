@@ -52,6 +52,9 @@ jobs:
           - script: npm ci
             displayName: Install dependencies
 
+          - script: npm audit --audit-level=high
+            displayName: npm audit (high and critical)
+
           - script: |
                 mkdir -p env
                 {

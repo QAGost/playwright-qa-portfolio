@@ -1,0 +1,35 @@
+# Dependabot: weekly update PRs for npm packages and GitHub Actions.
+# Actions are pinned to commit SHAs with the version as a comment; Dependabot
+# updates the SHA and the comment together. Minor and patch updates are
+# grouped into one PR per ecosystem; a major update gets a PR of its own.
+# Security updates (Dependabot alerts) are not limited by the schedule.
+version: 2
+
+updates:
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+          day: monday
+      open-pull-requests-limit: 5
+      commit-message:
+          prefix: chore
+          include: scope
+      groups:
+          npm-minor-and-patch:
+              update-types:
+                  - minor
+                  - patch
+
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: weekly
+          day: monday
+      commit-message:
+          prefix: ci
+      groups:
+          actions-minor-and-patch:
+              update-types:
+                  - minor
+                  - patch
