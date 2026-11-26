@@ -1,6 +1,7 @@
 ---
 description: Explore one page of practicesoftwaretesting.com with playwright-cli and write a P1-P5 test plan to plans/<name>.md (no test code)
 argument-hint: <name>
+model: opus
 ---
 
 # /page $ARGUMENTS

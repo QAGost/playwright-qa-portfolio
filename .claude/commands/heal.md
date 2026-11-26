@@ -1,6 +1,7 @@
 ---
 description: Diagnose one failing test, classify the cause, and propose a fix as a diff for approval (never applies it)
 argument-hint: <spec file or test title>
+model: opus
 ---
 
 # /heal $ARGUMENTS

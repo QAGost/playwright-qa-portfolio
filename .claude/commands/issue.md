@@ -1,6 +1,7 @@
 ---
 description: Turn one verified finding from docs/manual-verification.md into a ready-to-file bug report in docs/bug-reports/ (drafts only; files nothing)
 argument-hint: <finding id, e.g. A1>
+model: sonnet
 ---
 
 # /issue $ARGUMENTS

@@ -1,6 +1,7 @@
 ---
 description: Write the tests for one priority of plans/<name>.md, run them, read the logs and fix failures (max 3 fix attempts)
 argument-hint: <name> <priority P1-P5>
+model: sonnet
 ---
 
 # /codetest $ARGUMENTS
