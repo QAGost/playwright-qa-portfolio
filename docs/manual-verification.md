@@ -24,6 +24,10 @@ site deletes all users every hour).
 | A4  | Back from a product page loses the search                   | product-search PS-07             | [ ]                    | Low      |
 | A5  | Unknown product id shows a blank page (and a 500 behind it) | product-page PP-08               | [ ]                    | Low      |
 | A6  | A token issued before an account lock still works           | api-users API-18                 | [x] Claude, 2026-11-23 | Medium   |
+| A7  | Any customer can search all users' personal data            | api-security SEC-02              | [ ]                    | High     |
+| A8  | A customer can read another customer's favourite by id      | api-security SEC-07              | [ ]                    | Low      |
+| A9  | API lacks HSTS and `nosniff`; discloses the server version  | api-security SEC-17              | [ ]                    | Low      |
+| A10 | Catalog writes are accepted without a token                 | api-security SEC-09              | [ ]                    | Medium   |
 
 ### A1. Double-click on Add to cart: badge 2, cart holds 1
 
@@ -149,6 +153,76 @@ Needs a terminal (Git Bash; PowerShell users: use `curl.exe`). **Use a throwaway
 - Note: the lock itself is by design (upstream issue #843); the open question is whether it
   should also end existing sessions.
 
+### Getting a token for A7 and A8
+
+Needs a terminal (Git Bash; PowerShell users: use `curl.exe`). **Use throwaway accounts only.**
+
+1. Register a throwaway account in the browser (Sign in → Register your account; made-up
+   details). Note its email and password.
+2. Log in through the API and copy `access_token` from the response:
+   `curl -s -X POST https://api.practicesoftwaretesting.com/users/login -H "Content-Type: application/json" -d '{"email":"<email>","password":"<password>"}'`
+3. The token lives 5 minutes; repeat step 2 when a request answers 401.
+
+### A7. Any customer can search all users' personal data
+
+1. Get a token for a throwaway customer (above).
+2. Ask for the full user list, which is admin-only:
+   `curl -s -o /dev/null -w "%{http_code}\n" https://api.practicesoftwaretesting.com/users -H "Authorization: Bearer <token>"`
+3. Search the same users instead:
+   `curl -s -o /dev/null -w "%{http_code}\n" "https://api.practicesoftwaretesting.com/users/search?q=a" -H "Authorization: Bearer <token>"`
+4. To see what it returns, drop `-o /dev/null -w ...` from step 3 and look only at the field
+   names and the `total`. Don't copy or keep the data: these are other people's details.
+
+- Expected: 403 in both steps; a customer may not list other customers.
+- Seen 2026-11-26 (Claude, throwaway customer): step 2 **403**, step 3 **200** with `total` 25
+  and, per user, first and last name, email, phone, date of birth and full address.
+- Severity High: personal data of every registered user, to anyone who registers. Before any
+  public report, see `plans/api-security.md` open question E.
+
+### A8. A customer can read another customer's favourite
+
+1. Register two throwaway accounts, A and B, and get a token for each (above).
+2. Signed in as B in the browser, open any product and press **Add to favourites**.
+3. Find the favourite's id with B's token:
+   `curl -s https://api.practicesoftwaretesting.com/favorites -H "Authorization: Bearer <token B>"`
+   (the `id` of the first entry).
+4. Read it with A's token:
+   `curl -s -w " [%{http_code}]\n" https://api.practicesoftwaretesting.com/favorites/<id> -H "Authorization: Bearer <token A>"`
+
+- Expected: 404 (A has no favourite with that id).
+- Seen 2026-11-26 (Claude, throwaway users): **200** with B's `user_id` and `product_id`.
+- Not affected: A's own list (`GET /favorites`) shows only A's favourites, and A's `DELETE` on
+  B's favourite leaves it in place (see B13 for the status code).
+
+### A9. API security headers
+
+1. Show the response headers of any API call:
+   `curl -s -D - -o /dev/null https://api.practicesoftwaretesting.com/products`
+
+- Expected: `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, and a `Server`
+  header without a version number.
+- Seen 2026-11-26: none of the first two; `Server: Apache/2.4.52 (Ubuntu)`.
+- Also seen: the web app (`https://practicesoftwaretesting.com/`) sends no
+  `Content-Security-Policy`, `X-Frame-Options` or `X-Content-Type-Options` either (served by
+  Cloudflare). Recorded only; the plan does not automate it.
+
+### A10. Catalog writes without a token
+
+Safe to run: the requests use an empty body or an id that does not exist, so nothing is created
+or changed. **Never** send a valid body without a token.
+
+1. `curl -s -w " [%{http_code}]\n" -X POST https://api.practicesoftwaretesting.com/brands -H "Content-Type: application/json" -d '{}'`
+2. `curl -s -w " [%{http_code}]\n" -X PUT https://api.practicesoftwaretesting.com/products/01NOTEXISTING000000000000000 -H "Content-Type: application/json" -d '{}'`
+3. For comparison: `curl -s -w " [%{http_code}]\n" -X DELETE https://api.practicesoftwaretesting.com/products/01NOTEXISTING000000000000000`
+
+- Expected: 401 for all three: writes to the shared catalog need a staff login.
+- Seen 2026-11-26: step 1 **422** (name and slug required), step 2 **404**, step 3 401. The first
+  two got past authentication and reached validation or the lookup. The same holds for
+  `POST /categories`, `POST /products` and `PATCH /products/<id>`.
+- Context: the OpenAPI document lists no security requirement for these writes (it does for
+  `DELETE`), so this may be deliberate on a practice site. Judge whether it is a defect, a
+  documented design choice, or both.
+
 ## B. Gaps and observations (judgement calls)
 
 | #   | Finding                                                             | Plan             | Verified |
@@ -165,6 +239,7 @@ Needs a terminal (Git Bash; PowerShell users: use `curl.exe`). **Use a throwaway
 | B10 | Login documents only 200 (401 and 423 happen)                       | api-users        | [ ]      |
 | B11 | Register form needs house number and state; the API says optional   | login, api-users | [ ]      |
 | B12 | Accessibility names: "X", "ngx-slider", unnamed delete-favourite    | both             | [ ]      |
+| B13 | `DELETE /favorites/<id>` answers 204 for any id                     | api-security     | [ ]      |
 
 ### B1 and B2. Hidden expensive products, slider mismatch
 
@@ -233,7 +308,20 @@ reader.
 2. Signed in, add a product to favourites, open `/account/favorites`: the delete button has no
    name at all (icon only).
 
+### B13. Delete favourite always answers 204
+
+With a throwaway token (A7 and A8 above):
+`curl -s -o /dev/null -w "%{http_code}\n" -X DELETE https://api.practicesoftwaretesting.com/favorites/01NOTEXISTING000000000000000 -H "Authorization: Bearer <token>"`
+
+- Seen 2026-11-26: **204** for an id that does not exist, and 204 for another user's favourite
+  (which is not deleted). The contract lists 404. A client can't tell whether anything was
+  deleted.
+
 ## C. Seen, probably by design (no action unless you disagree)
+
+- `PATCH /users/<own id>` with `{"role":"admin"}` answers `{"success":true}`, but the role does
+  not change (a new login still has `role: user`, and `GET /users` is still 403). Safe; the
+  success message for an ignored field is misleading.
 
 - A customer cannot delete their own account: `DELETE /users/<id>` answers **403**
   `{"message":"Forbidden"}`.
