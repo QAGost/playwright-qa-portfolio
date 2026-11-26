@@ -1,0 +1,92 @@
+# Azure DevOps pipeline: the same API suite as .github/workflows/playwright.yml,
+# with results in the Azure Tests tab (JUnit) and the HTML report and traces
+# as pipeline artifacts.
+#
+# API tests only (--project=api): the demo site's UI sits behind Cloudflare bot
+# protection, which challenges datacenter IPs such as Microsoft-hosted agents.
+# The full suite (UI included) runs green locally.
+#
+# No secrets: the setup-api project registers its own run user, and the site
+# removes all user data hourly.
+
+trigger:
+    branches:
+        include:
+            - main
+
+pr:
+    branches:
+        include:
+            - main
+
+# Daily, so a third-party API change shows up without a push. Off the hour,
+# clear of the site's hourly data wipe.
+schedules:
+    - cron: '17 6 * * *'
+      displayName: Daily API run
+      branches:
+          include:
+              - main
+      always: true
+
+pool:
+    vmImage: ubuntu-latest
+
+variables:
+    # Azure sets TF_BUILD, not CI; playwright.config.ts reads CI for retries,
+    # workers and forbidOnly.
+    CI: 'true'
+    APP_URL: https://practicesoftwaretesting.com
+    API_URL: https://api.practicesoftwaretesting.com
+
+jobs:
+    - job: api_tests
+      displayName: Playwright API tests
+      timeoutInMinutes: 30
+      steps:
+          - task: UseNode@1
+            displayName: Use Node.js 22
+            inputs:
+                version: '22.x'
+
+          - script: npm ci
+            displayName: Install dependencies
+
+          - script: |
+                mkdir -p env
+                {
+                  echo "APP_URL=$APP_URL"
+                  echo "API_URL=$API_URL"
+                } > env/.env.dev
+            displayName: Write env file from pipeline variables
+
+          - script: npx playwright install --with-deps chromium
+            displayName: Install Playwright browser
+
+          - script: npx playwright test --project=api
+            displayName: Run Playwright tests (API)
+
+          - task: PublishTestResults@2
+            displayName: Publish test results
+            condition: succeededOrFailed()
+            inputs:
+                testResultsFormat: JUnit
+                testResultsFiles: results/junit.xml
+                testRunTitle: Playwright API tests
+                failTaskOnMissingResultsFile: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: Upload HTML report
+            condition: succeededOrFailed()
+            inputs:
+                targetPath: playwright-report
+                artifact: playwright-report
+
+          # Traces, screenshots and error-context.md of the failed tests; with
+          # two retries the trace is from the first retry.
+          - task: PublishPipelineArtifact@1
+            displayName: Upload test results and traces
+            condition: failed()
+            inputs:
+                targetPath: test-results
+                artifact: test-results
