@@ -138,6 +138,10 @@ before a file is written. On top of that I added four commands
    value drift, contract drift, app defect or environment) and proposes a fix as a diff. It applies
    nothing until I approve, and an app defect never gets a test edited to match the bug.
 
+Each command names its model. Planning (`/page`) and diagnosis (`/heal`) run on Claude Opus, where
+judgment matters most. Writing tests to a reviewed plan (`/codetest`) and drafting a report from a
+verified finding (`/issue`) run on Claude Sonnet, which is faster and cheaper for settled work.
+
 ### The loop: a model proposes, fixed rules validate, a person approves
 
 | Stage    | Who or what                                                                                    | Examples in this repository                                                                    |
