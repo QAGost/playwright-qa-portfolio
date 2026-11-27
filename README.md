@@ -210,11 +210,34 @@ GitHub Actions runs on every push to `main`:
   and a check that the test runner collects the suite.
 - **Playwright Tests (API):** the API project, with no credentials at all (the run user is
   self-provisioned).
+- **Security:** secret scanning, `npm audit` and CodeQL, also weekly (see below).
 
 The UI tests run locally only: according to the scaffold's CI notes, the public site's UI sits
 behind bot protection that challenges GitHub's runners. The planned fix is to run CI against a
 fresh copy of the app in Docker (its licence allows running it for private, non-commercial use, so
 this needs checking first), which also gives Linux screenshot baselines.
+
+## Code quality and supply-chain security
+
+| Tool                 | What it checks                                                                                    | Where it runs                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| ESLint               | Code rules, zero warnings allowed                                                                 | Pre-commit (staged files), Lint workflow         |
+| Prettier             | Formatting of every file, Markdown and YAML included                                              | Pre-commit (staged files), Lint workflow         |
+| TypeScript typecheck | `tsc --noEmit` over the whole project                                                             | Lint workflow                                    |
+| husky pre-commit     | lint-staged, the Constitution scan and the skill and version drift checks                         | Every local commit                               |
+| Dependabot           | Weekly update PRs for npm packages and pinned actions; 5-day cooldown, 14 days for a major        | GitHub                                           |
+| npm release-age gate | `npm install` resolves only versions published 5 or more days ago (`min-release-age` in `.npmrc`) | Local installs and the devcontainer (npm 11.10+) |
+| TruffleHog           | Leaked credentials, verified and unknown: new commits on push and PR, full history weekly         | Security workflow                                |
+| `npm audit`          | Known vulnerabilities in the lock file, high severity and above                                   | Security workflow, Azure pipeline                |
+| Dependency review    | A pull request that adds a vulnerable dependency                                                  | Security workflow (PRs)                          |
+| CodeQL               | Static security analysis of the TypeScript and of the workflow files                              | Security workflow, results in code scanning      |
+| OpenSSF Scorecard    | Supply-chain practices: pinned actions, token permissions, SAST, security policy                  | Scorecard workflow                               |
+
+Why the cooldown: a hijacked or malicious package release is usually caught and pulled within days,
+so taking new versions only after a few days keeps it out of the lock file. CI installs that
+reviewed lock file with `npm ci`, so the release-age gate acts where the lock file changes: local
+installs and Dependabot. Every action is pinned to a commit SHA, and the reporting route is in
+[SECURITY.md](SECURITY.md).
 
 ## Project structure
 

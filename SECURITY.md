@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository is a test-automation project: Playwright tests, page objects, fixtures, CI
+This repository is a portfolio and demo project in test automation: Playwright tests, page objects, fixtures, CI
 workflows and the AI workflow around them. A vulnerability here means one in that code or its
 pipeline, for example:
 
@@ -28,12 +28,19 @@ Include what you found, where (file and line, or workflow and run), and how to r
 expect a first reply within 7 days. Once a fix is merged, the advisory is published with credit to
 the reporter, unless you prefer otherwise.
 
-## How the repository protects itself
+## What is in place
 
-- GitHub Actions pinned to commit SHAs and updated by Dependabot, with read-only tokens unless a job
-  needs more.
-- `npm audit`, dependency review on pull requests, gitleaks secret scanning and CodeQL in
-  [`.github/workflows/security.yml`](.github/workflows/security.yml).
-- OpenSSF Scorecard in [`.github/workflows/scorecard.yml`](.github/workflows/scorecard.yml).
-- No secrets in code: URLs and credentials come from environment variables, env files are
-  gitignored, and a pre-commit hook and a CI scan block hardcoded credentials.
+| Control                                                                                   | Where                                                                   |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Credentials only in environment variables; env files are gitignored                       | `env/.env.example`, `.gitignore`                                        |
+| Pre-commit gates: ESLint, Prettier and the Constitution scan (no hardcoded URLs or `any`) | `.husky/pre-commit`                                                     |
+| Leaked-credential scan of new commits, and of the whole history weekly (TruffleHog)       | [`security.yml`](.github/workflows/security.yml)                        |
+| `npm audit` (high and above) on every push, PR and weekly; dependency review on PRs       | [`security.yml`](.github/workflows/security.yml), `azure-pipelines.yml` |
+| CodeQL static analysis of the TypeScript and of the workflow files                        | [`security.yml`](.github/workflows/security.yml), code scanning         |
+| Actions pinned to commit SHAs, read-only tokens, no persisted checkout credentials        | `.github/workflows/`                                                    |
+| Dependabot update PRs, with a 5-day cooldown (14 days for a major version)                | [`dependabot.yml`](.github/dependabot.yml)                              |
+| npm release-age gate: `npm install` takes only versions published 5 or more days ago      | [`.npmrc`](.npmrc)                                                      |
+| OpenSSF Scorecard grades the supply-chain practices                                       | [`scorecard.yml`](.github/workflows/scorecard.yml)                      |
+
+The README section [Code quality and supply-chain security](README.md#code-quality-and-supply-chain-security)
+explains each tool.

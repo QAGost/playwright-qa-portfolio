@@ -2,7 +2,12 @@
 # Actions are pinned to commit SHAs with the version as a comment; Dependabot
 # updates the SHA and the comment together. Minor and patch updates are
 # grouped into one PR per ecosystem; a major update gets a PR of its own.
-# Security updates (Dependabot alerts) are not limited by the schedule.
+#
+# Cooldown (supply-chain protection): a new release is proposed only once it
+# is 5 days old, a new major version once it is 14 days old. A hijacked or
+# malicious release is usually spotted and pulled within days, so waiting
+# keeps it out of this repo. Security updates (Dependabot alerts) skip the
+# cooldown and the schedule.
 version: 2
 
 updates:
@@ -11,6 +16,9 @@ updates:
       schedule:
           interval: weekly
           day: monday
+      cooldown:
+          default-days: 5
+          semver-major-days: 14
       open-pull-requests-limit: 5
       commit-message:
           prefix: chore
@@ -26,6 +34,9 @@ updates:
       schedule:
           interval: weekly
           day: monday
+      cooldown:
+          default-days: 5
+          semver-major-days: 14
       commit-message:
           prefix: ci
       groups:

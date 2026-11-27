@@ -1,10 +1,12 @@
 # Supply-chain and code security gates (OWASP Top 10 2025, A03 Software
 # Supply Chain Failures):
-#   npm-audit          known-vulnerable npm packages, high severity and above
+#   secrets            leaked credentials (TruffleHog): the pushed or PR
+#                      commits, the whole git history on the weekly and
+#                      manual runs; verified and unknown results fail the job
+#   dependency-audit   known-vulnerable npm packages, high severity and above
 #   dependency-review  a PR that adds a vulnerable dependency (PRs only)
-#   secret-scan        committed credentials, over the full git history (gitleaks)
-#   codeql             static analysis of the TypeScript; results in the
-#                      Security tab (code scanning)
+#   codeql             static analysis of the TypeScript and of the workflow
+#                      files; results in the Security tab (code scanning)
 # Every action is pinned to a commit SHA with its version as a comment;
 # Dependabot (.github/dependabot.yml) updates both. The token is read-only
 # unless a job states otherwise.
@@ -17,14 +19,41 @@ on:
     push:
         branches: [main]
     pull_request:
+    workflow_dispatch:
     schedule:
         # Weekly, Monday 05:41 UTC: a new advisory against an unchanged lock
-        # file turns this red without a push.
+        # file turns this red without a push. GitHub pauses scheduled runs in a
+        # public repo after 60 days without activity.
         - cron: '41 5 * * 1'
 
+# One group per event type, so a push to main never cancels the weekly scan
+# (or the reverse); only a PR run superseded by a newer push is cancelled.
+concurrency:
+    group: security-${{ github.event_name }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-    npm-audit:
+    secrets:
         runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 0 # the scan walks commits, not only the tip
+                  persist-credentials: false
+
+            # The action picks the range from the event: push and PR scan their
+            # own commits; schedule and workflow_dispatch scan the full history.
+            - uses: trufflesecurity/trufflehog@4ef51f69ca6347aaa76a5e64a87eac9c0c909f71 # v3.100.1
+              with:
+                  # The scanner image; the action's default is `latest`, which
+                  # would bypass the SHA pin. Keep in step with the version above.
+                  version: 3.100.1
+                  extra_args: --results=verified,unknown
+
+    dependency-audit:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -41,6 +70,7 @@ jobs:
     dependency-review:
         if: github.event_name == 'pull_request'
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -50,25 +80,19 @@ jobs:
               with:
                   fail-on-severity: high
 
-    secret-scan:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-              with:
-                  fetch-depth: 0 # scan every commit, not only the tip
-                  persist-credentials: false
-
-            - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
-              env:
-                  # Read-only: gitleaks uses it to list the commits of a PR.
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     codeql:
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         permissions:
             contents: read
             security-events: write # upload results to code scanning
             actions: read
+        strategy:
+            fail-fast: false
+            matrix:
+                # actions: the workflow files themselves (injection, excessive
+                # permissions, untrusted checkout).
+                language: [javascript-typescript, actions]
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
@@ -76,10 +100,10 @@ jobs:
 
             - uses: github/codeql-action/init@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
               with:
-                  languages: javascript-typescript
+                  languages: ${{ matrix.language }}
                   build-mode: none
                   queries: security-extended
 
             - uses: github/codeql-action/analyze@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
               with:
-                  category: /language:javascript-typescript
+                  category: /language:${{ matrix.language }}
