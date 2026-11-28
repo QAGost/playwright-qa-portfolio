@@ -153,7 +153,7 @@ Needs a terminal (Git Bash; PowerShell users: use `curl.exe`). **Use a throwaway
 - Note: the lock itself is by design (upstream issue #843); the open question is whether it
   should also end existing sessions.
 
-### Getting a token for A7 and A8
+### Getting a token for A8 and B13
 
 Needs a terminal (Git Bash; PowerShell users: use `curl.exe`). **Use throwaway accounts only.**
 
@@ -165,19 +165,15 @@ Needs a terminal (Git Bash; PowerShell users: use `curl.exe`). **Use throwaway a
 
 ### A7. Any customer can search all users' personal data
 
-1. Get a token for a throwaway customer (above).
-2. Ask for the full user list, which is admin-only:
-   `curl -s -o /dev/null -w "%{http_code}\n" https://api.practicesoftwaretesting.com/users -H "Authorization: Bearer <token>"`
-3. Search the same users instead:
-   `curl -s -o /dev/null -w "%{http_code}\n" "https://api.practicesoftwaretesting.com/users/search?q=a" -H "Authorization: Bearer <token>"`
-4. To see what it returns, drop `-o /dev/null -w ...` from step 3 and look only at the field
-   names and the `total`. Don't copy or keep the data: these are other people's details.
+**Steps to reproduce withheld.** This finding exposes other people's personal data on a live
+site, so it is reported privately to the site's maintainers first; the steps are published once
+it is fixed or the maintainers agree.
 
-- Expected: 403 in both steps; a customer may not list other customers.
-- Seen 2026-11-26 (Claude, throwaway customer): step 2 **403**, step 3 **200** with `total` 25
-  and, per user, first and last name, email, phone, date of birth and full address.
-- Severity High: personal data of every registered user, to anyone who registers. Before any
-  public report, see `plans/api-security.md` open question E.
+- Expected: an ordinary customer cannot list or search other customers (the admin-only user
+  list correctly refuses them with 403).
+- Seen 2026-11-26 (Claude, throwaway customer): a user search answered **200** with other users'
+  names, email addresses, phone numbers, dates of birth and addresses.
+- Severity High: personal data of every registered user, to anyone who registers.
 
 ### A8. A customer can read another customer's favourite
 
@@ -310,7 +306,7 @@ reader.
 
 ### B13. Delete favourite always answers 204
 
-With a throwaway token (A7 and A8 above):
+With a throwaway token ("Getting a token" above):
 `curl -s -o /dev/null -w "%{http_code}\n" -X DELETE https://api.practicesoftwaretesting.com/favorites/01NOTEXISTING000000000000000 -H "Authorization: Bearer <token>"`
 
 - Seen 2026-11-26: **204** for an id that does not exist, and 204 for another user's favourite
